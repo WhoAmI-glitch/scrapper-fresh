@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     # Claude API (optional, for LLM fallback)
     claude_api_key: str | None = None
 
+    # Yandex Maps API (optional, for discovery)
+    yandex_api_key: str | None = None
+
     # Web UI auth
     app_username: str = "admin"
     app_password: str = "changeme"

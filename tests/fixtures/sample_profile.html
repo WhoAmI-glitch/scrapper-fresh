@@ -2,112 +2,131 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8">
-    <title>ООО "СтройГарант" - Rusprofile</title>
+    <title>ООО "СтройГарант" Москва (ИНН 7701234567) адрес и реквизиты</title>
 </head>
-<body>
-<div class="company-header">
-    <h1 class="company-name" itemprop="name">ООО &laquo;СтройГарант&raquo;</h1>
-    <div class="company-status">
-        <span class="status-active">Действующее</span>
-    </div>
-</div>
+<body class="dashboard-page">
+
+<h1 class="company-name" itemprop="name">ООО &laquo;СтройГарант&raquo;</h1>
 
 <div id="anketa" class="company-info">
 
-    <!-- INN -->
-    <div class="company-info__row">
-        <span class="company-info__text">ИНН</span>
-        <span class="company-info__value" id="clip_inn">7701234567</span>
+    <!-- ОГРН -->
+    <dl data-hidden-tile="true">
+        <dt class="company-info__title">ОГРН</dt>
+        <dd class="company-info__text has-copy clipper" data-clipboard-target="#clip_ogrn">
+            <span class="copy_target" id="clip_ogrn">1027700000001</span>
+            <span class="copy_button"></span>
+        </dd>
+        <dd class="company-info__text padding-top">от 15 марта 2010 г.</dd>
+    </dl>
+
+    <!-- Дата регистрации -->
+    <dl>
+        <dt class="company-info__title">Дата регистрации</dt>
+        <dd class="company-info__text">15.03.2010</dd>
+    </dl>
+
+    <!-- ИНН/КПП -->
+    <dl>
+        <dt class="company-info__title">ИНН/КПП</dt>
+        <dd class="company-info__text has-copy clipper" data-clipboard-target="#clip_inn" itemprop="taxID">
+            <span class="copy_target" id="clip_inn">7701234567</span>
+            <span class="copy_button"></span>
+        </dd>
+        <dd class="company-info__text has-copy clipper" data-clipboard-target="#clip_kpp">
+            <span class="copy_target" id="clip_kpp">770101001</span>
+            <span class="copy_button"></span>
+        </dd>
+    </dl>
+
+    <!-- Среднесписочная численность -->
+    <dl class="company-row">
+        <dt class="company-info__title">Среднесписочная численность</dt>
+        <dd class="company-info__text">85</dd>
+    </dl>
+
+    <!-- Юридический адрес -->
+    <div class="company-row">
+        <span class="company-info__title">Юридический адрес</span>
+        <div class="has-copy clipper" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+            <address class="company-info__text">
+                <span class="copy_target" id="clip_address">
+                    <span itemprop="postalCode">123456</span>,
+                    <span itemprop="addressLocality">город Москва</span>,
+                    <span itemprop="streetAddress">ул. Строителей, д. 15, оф. 301</span>
+                </span>
+            </address>
+        </div>
     </div>
 
-    <!-- KPP -->
-    <div class="company-info__row">
-        <span class="company-info__text">КПП</span>
-        <span class="company-info__value" id="clip_kpp">770101001</span>
+    <!-- Руководитель -->
+    <div class="company-row hidden-parent">
+        <span class="company-info__title">Руководитель</span>
+        <div class="company-info__item">
+            <span class="chief-title">Генеральный директор</span>
+            <span class="company-info__text">
+                <a class="gtm_main_fl exp-styled-link font-normal" href="/person/ivanov-sp-770100000001">
+                    <span class="margin-right-s">Иванов Сергей Петрович</span>
+                </a>
+            </span>
+            <span class="chief-title">с 15 марта 2010 г.</span>
+        </div>
     </div>
 
-    <!-- OGRN -->
-    <div class="company-info__row">
-        <span class="company-info__text">ОГРН</span>
-        <span class="company-info__value" id="clip_ogrn">1027700000001</span>
+    <!-- Реестр МСП -->
+    <div class="company-row" data-hidden-tile="true">
+        <span class="company-info__title">Реестр МСП</span>
+        <span class="company-info__text">Статус: малое предприятие</span>
+        <span class="chief-title">присвоен 10 августа 2016 г.</span>
     </div>
 
-    <!-- Registration date -->
-    <div class="company-info__row">
-        <span class="company-info__text">Дата регистрации</span>
-        <span class="company-info__value">15.03.2010</span>
-    </div>
-
-    <!-- Address -->
-    <div class="company-info__row">
-        <span class="company-info__text">Юридический адрес</span>
-        <span class="company-info__value" itemprop="address">
-            г. Москва, ул. Строителей, д. 15, оф. 301
+    <!-- Основной вид деятельности -->
+    <div class="company-row extra-padding-r">
+        <span class="company-info__title">Основной вид деятельности</span>
+        <span class="company-info__text">
+            Строительство жилых и нежилых зданий <span class="bolder">(41.20)</span>
         </span>
     </div>
 
-    <!-- CEO -->
-    <div class="company-info__row">
-        <span class="company-info__text">Руководитель</span>
-        <span class="company-info__value">
-            <a href="/person/123456" class="company-info__link">
-                Генеральный директор Иванов Сергей Петрович
-            </a>
-        </span>
-    </div>
-
-    <!-- OKVED -->
-    <div class="company-info__row">
-        <span class="company-info__text">Основной ОКВЭД</span>
-        <span class="company-info__value">
-            <a href="/okved/41.20">41.20</a>
-            Строительство жилых и нежилых зданий
-        </span>
-    </div>
-
-    <!-- Phone -->
-    <div class="company-info__row">
-        <span class="company-info__text">Телефон</span>
-        <span class="company-info__value">
-            <a href="tel:+74951234567" class="company-info__link">+7 (495) 123-45-67</a>
-        </span>
-    </div>
-
-    <!-- Email -->
-    <div class="company-info__row">
-        <span class="company-info__text">E-mail</span>
-        <span class="company-info__value">
-            <a href="mailto:info@stroygarant.ru" class="company-info__link">info@stroygarant.ru</a>
-        </span>
-    </div>
-
-    <!-- Website -->
-    <div class="company-info__row">
-        <span class="company-info__text">Сайт</span>
-        <span class="company-info__value">
-            <a href="http://www.stroygarant.ru" class="company-info__link" target="_blank" rel="nofollow">www.stroygarant.ru</a>
-        </span>
+    <!-- Контакты -->
+    <div class="company-row" id="contacts-row">
+        <span class="company-info__title">Контакты</span>
+        <div class="hidden-parent">
+            <div class="company-info__contact phone iconer">
+                <span class="company-info__contact-title">Телефон</span>
+                <div class="company-info__contact">
+                    <a href="tel:+74951234567">+7 (495) 123-45-67</a>
+                </div>
+            </div>
+        </div>
+        <div class="hidden-parent" data-hidden-tile="true">
+            <div class="company-info__contact mail iconer">
+                <span class="company-info__contact-title">Электронная почта</span>
+                <div class="company-info__contact">
+                    <a href="mailto:info@stroygarant.ru">info@stroygarant.ru</a>
+                </div>
+            </div>
+        </div>
+        <div class="hidden-parent">
+            <div class="company-info__contact site iconer">
+                <span class="company-info__contact-title">Сайт</span>
+                <div class="company-info__contact">
+                    <a href="http://www.stroygarant.ru" target="_blank" rel="nofollow">www.stroygarant.ru</a>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
 
-<div class="company-finance">
-    <h2 class="company-finance__title">Финансовая отчётность</h2>
-    <div class="company-finance__row">
-        <span class="company-finance__text">Выручка</span>
-        <span class="company-finance__value">150&nbsp;000&nbsp;000&nbsp;₽</span>
-    </div>
-    <div class="company-finance__row">
-        <span class="company-finance__text">Среднесписочная численность</span>
-        <span class="company-finance__value">85 чел.</span>
-    </div>
-</div>
-
-<div class="founders-list">
-    <h2>Учредители</h2>
-    <div class="founders-list__item">
-        <a href="/person/123456">Иванов Сергей Петрович</a>
-        <span class="founders-list__share">100%</span>
+<!-- Finance section -->
+<div class="finance-indicators">
+    <div class="finance-col space-between">
+        <div class="tab-opener active" data-tab_name="tab_revenue">Выручка</div>
+        <div>
+            <span class="num">150</span>
+            <span class="num-text">млн руб.</span>
+        </div>
     </div>
 </div>
 

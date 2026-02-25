@@ -1,0 +1,76 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "ResponseMetaData": {
+      "SearchRequest": {
+        "request": "строительная компания",
+        "results": 50,
+        "skip": 0,
+        "boundedBy": [[37.0173, 55.3558], [38.2173, 56.1558]]
+      },
+      "SearchResponse": {
+        "found": 120,
+        "display": "multiple"
+      }
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [37.5885, 55.7334]
+      },
+      "properties": {
+        "CompanyMetaData": {
+          "id": "1234567890",
+          "name": "ООО СтройМастер",
+          "address": "Москва, ул. Строителей, 15",
+          "url": "https://stroymaster.ru",
+          "Categories": [
+            {"class": "construction", "name": "Строительная компания"},
+            {"class": "materials", "name": "Строительные материалы"}
+          ],
+          "Phones": [
+            {"type": "phone", "formatted": "+7 (495) 123-45-67"},
+            {"type": "phone", "formatted": "+7 (495) 765-43-21"}
+          ]
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [37.6521, 55.7109]
+      },
+      "properties": {
+        "CompanyMetaData": {
+          "id": "9876543210",
+          "name": "АО БетонСервис",
+          "address": "Москва, Бетонный проезд, 3",
+          "Categories": [
+            {"class": "concrete", "name": "Производство бетона"}
+          ],
+          "Phones": [
+            {"type": "phone", "formatted": "+7 (499) 222-33-44"}
+          ]
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [37.7100, 55.6800]
+      },
+      "properties": {
+        "CompanyMetaData": {
+          "id": "5555555555",
+          "name": "",
+          "address": "Москва, ул. Пустая, 0"
+        }
+      }
+    }
+  ]
+}

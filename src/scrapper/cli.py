@@ -23,16 +23,30 @@ def init_db() -> None:
 
 
 @cli.command()
-@click.option("--source", type=click.Choice(["fake"]), default="fake", help="Discovery source")
+@click.option(
+    "--source",
+    type=click.Choice(["fake", "yandex_maps"]),
+    default="fake",
+    help="Discovery source",
+)
 @click.option("--no-tasks", is_flag=True, help="Don't create enrichment tasks")
-def discover(source: str, no_tasks: bool) -> None:
+@click.option(
+    "--region",
+    type=str,
+    default=None,
+    help="Comma-separated region slugs for yandex_maps (e.g. moscow,spb)",
+)
+def discover(source: str, no_tasks: bool, region: str | None) -> None:
     """Discover company candidates from a source."""
     from scrapper.db.connection import get_connection
     from scrapper.db.queue import create_enrichment_task, save_candidate
     from scrapper.discovery.sources import SOURCES
 
     source_cls = SOURCES[source]
-    src = source_cls()
+    kwargs: dict[str, object] = {}
+    if region is not None and source == "yandex_maps":
+        kwargs["regions"] = [r.strip() for r in region.split(",") if r.strip()]
+    src = source_cls(**kwargs)
     count = 0
     tasks_created = 0
 
