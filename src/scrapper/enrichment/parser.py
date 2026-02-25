@@ -448,7 +448,7 @@ class RussprofileParser:
         # Find the section wrapper (has both the type class AND "iconer")
         section: Tag | None = None
         for el in contacts_row.find_all(class_="company-info__contact"):
-            classes = el.get("class", [])
+            classes: list[str] = el.get("class") or []  # type: ignore[assignment]
             if css_cls in classes and "iconer" in classes:
                 section = el
                 break

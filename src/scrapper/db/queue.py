@@ -149,6 +149,20 @@ def save_lead(conn: Connection, lead: Lead) -> None:
     )
 
 
+def get_candidate_metadata(conn: Connection, candidate_id: int) -> dict:
+    """Return the metadata dict for a candidate, or empty dict."""
+    row = conn.execute(
+        "SELECT metadata FROM candidates WHERE id = %s",
+        (candidate_id,),
+    ).fetchone()
+    if row and row["metadata"]:
+        raw = row["metadata"]
+        if isinstance(raw, str):
+            return json.loads(raw)
+        return dict(raw)
+    return {}
+
+
 def get_queue_stats(conn: Connection) -> dict[str, int]:
     """Return task counts by state."""
     rows = conn.execute(

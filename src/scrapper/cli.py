@@ -72,10 +72,16 @@ def discover(source: str, no_tasks: bool, region: str | None) -> None:
 def enrich(batch_size: int, dry_run: bool) -> None:
     """Process enrichment tasks: resolve → fetch → parse → save."""
     from scrapper.db.connection import get_connection
-    from scrapper.db.queue import claim_tasks, save_lead, update_task_state
+    from scrapper.db.queue import (
+        claim_tasks,
+        save_lead,
+        update_task_state,
+    )
     from scrapper.enrichment.fetcher import Fetcher
     from scrapper.enrichment.parser import RussprofileParser
     from scrapper.enrichment.resolver import ProfileResolver
+    from scrapper.enrichment.website_contacts import scrape_website_contacts
+    from scrapper.normalizers import normalize_phone
     from scrapper.storage.raw_pages import RawPageStore
 
     resolver = ProfileResolver()
@@ -123,7 +129,10 @@ def enrich(batch_size: int, dry_run: bool) -> None:
             if not lead.company_name:
                 lead.company_name = task.company_name
 
-            # Step 4: Save
+            # Step 4: Enrich contacts from alternative sources
+            _enrich_contacts(lead, task.candidate_id, scrape_website_contacts, normalize_phone)
+
+            # Step 5: Save
             with get_connection() as conn:
                 save_lead(conn, lead)
                 update_task_state(conn, task.id, "DONE", profile_url=search_url)
@@ -141,6 +150,54 @@ def enrich(batch_size: int, dry_run: bool) -> None:
             failed += 1
 
     click.echo(f"Done. Success: {success}, Failed: {failed}")
+
+
+def _enrich_contacts(
+    lead: object,
+    candidate_id: int,
+    scrape_fn: object,
+    normalize_fn: object,
+) -> None:
+    """Fill missing phone/email/website from website scraper and Yandex Maps metadata."""
+    from scrapper.db.connection import get_connection
+    from scrapper.db.models import Lead
+    from scrapper.db.queue import get_candidate_metadata
+
+    assert isinstance(lead, Lead)
+
+    # Try website contact scraping if phone or email is missing
+    website_url = lead.website
+    if not website_url:
+        # Check candidate metadata for URL from Yandex Maps
+        with get_connection() as conn:
+            meta = get_candidate_metadata(conn, candidate_id)
+        website_url = meta.get("url")
+
+    if website_url and (not lead.phone or not lead.email):
+        try:
+            contacts = scrape_fn(website_url)  # type: ignore[operator]
+            if not lead.phone and contacts.get("phones"):
+                lead.phone = contacts["phones"][0]
+                logger.info(f"Phone from website: {lead.phone}")
+            if not lead.email and contacts.get("emails"):
+                lead.email = contacts["emails"][0]
+                logger.info(f"Email from website: {lead.email}")
+            if not lead.website and contacts.get("websites"):
+                lead.website = contacts["websites"][0]
+        except Exception as e:
+            logger.debug(f"Website contact scraping failed: {e}")
+
+    # Fallback: use Yandex Maps phone data from candidate metadata
+    if not lead.phone:
+        with get_connection() as conn:
+            meta = get_candidate_metadata(conn, candidate_id)
+        yandex_phones = meta.get("phones", [])
+        for raw_phone in yandex_phones:
+            normalized = normalize_fn(raw_phone)  # type: ignore[operator]
+            if normalized:
+                lead.phone = normalized
+                logger.info(f"Phone from Yandex Maps: {lead.phone}")
+                break
 
 
 @cli.command()
