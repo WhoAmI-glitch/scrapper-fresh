@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "api_version": "3.0",
+    "code": 200,
+    "issue_date": "20260225"
+  },
+  "result": {
+    "total": 85,
+    "items": [
+      {
+        "id": "70000001234567",
+        "type": "branch",
+        "name": "ООО СтройМастер",
+        "full_address_name": "Москва, ул. Строителей, 15",
+        "address_name": "ул. Строителей, 15",
+        "point": {
+          "lon": 37.5885,
+          "lat": 55.7334
+        },
+        "org": {
+          "id": "70000001234560",
+          "name": "ООО СтройМастер"
+        },
+        "rubrics": [
+          {"id": "111", "name": "Строительные компании"},
+          {"id": "222", "name": "Строительные материалы"}
+        ],
+        "contact_groups": [
+          {
+            "contacts": [
+              {"type": "phone", "value": "+7 (495) 123-45-67"},
+              {"type": "phone", "value": "+7 (495) 765-43-21"},
+              {"type": "website", "url": "https://stroymaster.ru"}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "70000009876543",
+        "type": "branch",
+        "name": "АО БетонСервис",
+        "full_address_name": "Москва, Бетонный проезд, 3",
+        "address_name": "Бетонный проезд, 3",
+        "point": {
+          "lon": 37.6521,
+          "lat": 55.7109
+        },
+        "org": {
+          "id": "70000009876540",
+          "name": "АО БетонСервис"
+        },
+        "rubrics": [
+          {"id": "333", "name": "Производство бетона"}
+        ],
+        "contact_groups": [
+          {
+            "contacts": [
+              {"type": "phone", "value": "+7 (499) 222-33-44"}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "70000005555555",
+        "type": "branch",
+        "name": "",
+        "full_address_name": "Москва, ул. Пустая, 0",
+        "point": {
+          "lon": 37.7100,
+          "lat": 55.6800
+        },
+        "org": {
+          "name": ""
+        },
+        "rubrics": [],
+        "contact_groups": []
+      }
+    ]
+  }
+}

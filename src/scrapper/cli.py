@@ -25,7 +25,7 @@ def init_db() -> None:
 @cli.command()
 @click.option(
     "--source",
-    type=click.Choice(["fake", "yandex_maps"]),
+    type=click.Choice(["fake", "yandex_maps", "twogis", "zakupki"]),
     default="fake",
     help="Discovery source",
 )
@@ -34,7 +34,7 @@ def init_db() -> None:
     "--region",
     type=str,
     default=None,
-    help="Comma-separated region slugs for yandex_maps (e.g. moscow,spb)",
+    help="Comma-separated region slugs (e.g. moscow,spb)",
 )
 def discover(source: str, no_tasks: bool, region: str | None) -> None:
     """Discover company candidates from a source."""
@@ -44,7 +44,7 @@ def discover(source: str, no_tasks: bool, region: str | None) -> None:
 
     source_cls = SOURCES[source]
     kwargs: dict[str, object] = {}
-    if region is not None and source == "yandex_maps":
+    if region is not None and source in ("yandex_maps", "twogis", "zakupki"):
         kwargs["regions"] = [r.strip() for r in region.split(",") if r.strip()]
     src = source_cls(**kwargs)
     count = 0
