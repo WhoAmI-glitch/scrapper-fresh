@@ -1,0 +1,18 @@
+# Caddy reverse proxy configuration
+# Replace :80 with your domain for automatic HTTPS
+:80 {
+    reverse_proxy api:8000
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Access logging
+    log {
+        output stdout
+        format console
+    }
+}
