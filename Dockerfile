@@ -12,6 +12,7 @@ RUN apt-get update && \
         libpq-dev \
         libxml2-dev \
         libxslt1-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies

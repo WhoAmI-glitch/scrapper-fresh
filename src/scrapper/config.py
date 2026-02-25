@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     app_username: str = "admin"
     app_password: str = "changeme"
 
+    # Telegram alerts (optional)
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
+
     # Data paths
     raw_data_dir: Path = Path("data/raw")
     export_dir: Path = Path("data/exports")

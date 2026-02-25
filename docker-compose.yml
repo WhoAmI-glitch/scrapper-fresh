@@ -31,7 +31,7 @@ services:
       - raw_data:/app/data/raw
       - exports:/app/data/exports
     command: >
-      sh -c "scrapper init-db && python -m http.server 8000 --directory /app"
+      sh -c "scrapper init-db && uvicorn scrapper.web.app:app --host 0.0.0.0 --port 8000"
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8000/ || exit 1"]
       interval: 10s
