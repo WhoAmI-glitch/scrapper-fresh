@@ -1,0 +1,63 @@
+{
+  "id": "qr-20260309-bk7est",
+  "finding_id": "finding-20260309-bk7est",
+  "task_id": "task-20260309-y4nd3x",
+  "checks": [
+    {
+      "name": "correctness",
+      "passed": true,
+      "weight": 0.25,
+      "details": "All Python source files parse without syntax errors"
+    },
+    {
+      "name": "completeness",
+      "passed": true,
+      "weight": 0.20,
+      "details": "All 4 acceptance criteria met: deps installed, no collection errors, 118/118 tests pass, no new deps added"
+    },
+    {
+      "name": "regressions",
+      "passed": true,
+      "weight": 0.20,
+      "details": "118 tests pass in 1.22s — zero failures, zero errors, zero skipped"
+    },
+    {
+      "name": "duplication",
+      "passed": true,
+      "weight": 0.10,
+      "details": "check-duplication.sh passes: no overlapping ownership, no duplicate content, no stray schemas, no rule duplication"
+    },
+    {
+      "name": "contracts",
+      "passed": true,
+      "weight": 0.10,
+      "details": "All 3 state files (task, handoff, finding) have valid JSON and correct ID prefixes"
+    },
+    {
+      "name": "tests",
+      "passed": true,
+      "weight": 0.10,
+      "details": "118 existing tests all pass — no new tests needed since this was an environment fix, not a code change"
+    },
+    {
+      "name": "runnability",
+      "passed": true,
+      "weight": 0.03,
+      "details": "scrapper package installed in editable mode, entry points accessible"
+    },
+    {
+      "name": "documentation",
+      "passed": true,
+      "weight": 0.02,
+      "details": "No code changes made, no documentation updates required"
+    }
+  ],
+  "score": 100,
+  "verdict": "accept",
+  "blocking_issues": [],
+  "notes": [
+    "Python 3.14 in .venv is newer than pyproject.toml minimum of 3.11 — no issues but worth tracking",
+    "check-duplication.sh had a macOS compatibility bug (uniq -w flag) — fixed as part of QA pass"
+  ],
+  "created_at": "2026-03-09T19:45:00Z"
+}

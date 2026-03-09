@@ -1,0 +1,22 @@
+{
+  "id": "task-20260309-y4nd3x",
+  "title": "Fix broken test suite \u2014 install missing dependencies and get all tests green",
+  "description": "All 5 test files fail at collection due to ModuleNotFoundError: loguru. The project has a pyproject.toml and a .venv but dependencies are not fully installed. Fix the environment so pytest runs all tests to completion.",
+  "status": "done",
+  "assigned_agent": "backend",
+  "parent_task_id": null,
+  "subtask_ids": [],
+  "depends_on": [],
+  "created_at": "2026-03-09T19:30:00Z",
+  "updated_at": "2026-03-09T19:46:00Z",
+  "created_by": "coordinator",
+  "priority": "high",
+  "tags": [
+    "tests",
+    "dependencies",
+    "broken-build"
+  ],
+  "handoff_id": "handoff-20260309-fx7est",
+  "finding_id": "finding-20260309-bk7est",
+  "quality_report_id": "qr-20260309-bk7est"
+}

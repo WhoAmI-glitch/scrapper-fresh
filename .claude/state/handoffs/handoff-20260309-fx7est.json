@@ -1,0 +1,35 @@
+{
+  "id": "handoff-20260309-fx7est",
+  "task_id": "task-20260309-y4nd3x",
+  "from_agent": "coordinator",
+  "to_agent": "backend",
+  "context": {
+    "objective": "Fix the broken test suite so all tests pass. The venv exists but is missing loguru and possibly other dependencies.",
+    "acceptance_criteria": [
+      "All Python dependencies from pyproject.toml are installed in the venv",
+      "pytest runs all 5 test files without collection errors",
+      "All tests pass (0 failures)",
+      "No new dependencies added beyond what pyproject.toml already specifies"
+    ],
+    "constraints": [
+      "Use the existing .venv — do not create a new virtual environment",
+      "Do not modify test files unless they have genuine bugs",
+      "Do not modify source code to make tests pass — fix the environment"
+    ],
+    "relevant_files": [
+      "pyproject.toml",
+      "tests/test_yandex_maps.py",
+      "tests/test_twogis.py",
+      "tests/test_zakupki.py",
+      "tests/test_parser.py",
+      "tests/test_models.py",
+      "tests/test_normalizers.py",
+      "tests/test_website_contacts.py"
+    ],
+    "prior_findings": [],
+    "skills": []
+  },
+  "created_at": "2026-03-09T19:35:00Z",
+  "iteration": 1,
+  "feedback_from_review": null
+}
