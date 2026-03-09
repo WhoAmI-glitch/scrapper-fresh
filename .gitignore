@@ -1,19 +1,69 @@
-__pycache__/
-*.py[cod]
-*.egg-info/
+# =============================================================================
+# Claude Autonomous Workspace — .gitignore
+# =============================================================================
+
+# --- Dependencies ---
+node_modules/
+.pnpm-store/
+
+# --- Build outputs ---
 dist/
 build/
+.next/
+out/
+*.tsbuildinfo
+
+# --- Environment files ---
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
 .eggs/
 *.egg
-.env
 .venv/
 venv/
-data/raw/
-data/exports/
-*.xlsx
-*.csv
 .mypy_cache/
-.pytest_cache/
 .ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
+*.pyo
+
+# --- Data exports (generated, not tracked) ---
+data/exports/*
+!data/exports/.gitkeep
+
+# --- IDE ---
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-state/
+
+# --- Docker ---
+*.log
+docker-compose.override.yml
+
+# --- Turbo ---
+.turbo/
+
+# --- OS ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Misc ---
+*.bak
+*.tmp
+*.temp
+.cache/
+coverage/

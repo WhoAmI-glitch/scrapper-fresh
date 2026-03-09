@@ -1,0 +1,15 @@
+{
+  "model": "sonnet",
+  "autonomyMode": "high",
+  "defaultShell": "bash",
+  "taskLogsDir": ".claude/task-logs",
+  "preferredPackageManager": "pnpm",
+  "preferredPythonTooling": "uv",
+  "protectedPaths": [".env", ".env.local", ".env.production", "secrets/", "certs/"],
+  "safeWriteGlobs": ["apps/**", "packages/**", "infra/**", "docs/**", ".claude/**", ".devcontainer/**", ".env.example"],
+  "defaultValidation": {
+    "frontend": "pnpm --filter web typecheck && pnpm --filter web test",
+    "backend": "cd apps/api && pytest",
+    "workspace": "pnpm lint && pnpm typecheck"
+  }
+}

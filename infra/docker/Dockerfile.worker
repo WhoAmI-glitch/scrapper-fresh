@@ -1,0 +1,48 @@
+# =============================================================================
+# Dockerfile.worker — Background task processor
+# =============================================================================
+# Shares the same Python base as the API but runs the worker entrypoint.
+# =============================================================================
+
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# --- Stage 2: Dependencies ---
+FROM base AS deps
+
+COPY apps/api/pyproject.toml apps/api/uv.lock* ./
+RUN uv venv .venv && \
+    uv pip install --no-cache -r pyproject.toml
+
+# --- Stage 3: Production ---
+FROM base AS runner
+
+# Create non-root user
+RUN groupadd --gid 1001 appuser && \
+    useradd --uid 1001 --gid appuser --shell /bin/bash --create-home appuser
+
+COPY --from=deps /app/.venv /app/.venv
+COPY apps/api /app
+
+# Ensure data directories exist
+RUN mkdir -p /app/data/exports /app/data/snapshots && \
+    chown -R appuser:appuser /app
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+USER appuser
+
+# Worker has no exposed ports — it polls the database
+CMD ["python", "-m", "app.workers.main"]
