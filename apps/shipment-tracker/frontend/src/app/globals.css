@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mapbox GL JS CSS -- loaded from CDN to avoid bundling issues */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+/* ── Base dark theme ────────────────────────────────────────────────────────── */
+
+:root {
+  --background: #0a0a14;
+  --foreground: #e2e8f0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure full-screen layout */
+html,
+body,
+#__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* ── Scrollbar styles ───────────────────────────────────────────────────────── */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.5);
+  border-radius: 2px;
+}
+
+/* ── Mapbox overrides ───────────────────────────────────────────────────────── */
+
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-logo {
+  opacity: 0.4;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(51, 65, 85, 0.5) !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(8px);
+}
+
+.mapboxgl-ctrl-group button {
+  border-color: rgba(51, 65, 85, 0.3) !important;
+}
+
+.mapboxgl-ctrl-group button span {
+  filter: invert(1);
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+/* ── Utility classes ────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
