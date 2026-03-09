@@ -267,3 +267,87 @@ Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distrib
 Karpicke, J. D., & Roediger, H. L. (2008). The critical importance of retrieval for learning. *Science, 319*(5865), 966-968.
 
 Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., & Willingham, D. T. (2013). Improving students' learning with effective learning techniques. *Psychological Science in the Public Interest, 14*(1), 4-58.
+
+## Regent's University London Library Integration
+
+The Tate Library at Regent's University London provides access to a wide range of academic databases, e-journals, e-books, and research tools. When conducting research for Regent's coursework or projects, use these institutional resources as your primary discovery layer.
+
+### EBSCO Discovery Service
+
+The primary search layer across all subscribed databases. Access via `search.ebscohost.com` through the university portal or proxy.
+
+**Search patterns:**
+- Use Boolean operators: `AND`, `OR`, `NOT` to combine concepts
+- Use quotation marks for exact phrases: `"corporate social responsibility"`
+- Use truncation with `*` for word variations: `manage*` finds manager, management, managing
+- Use field codes for precision: `TI` (title), `AU` (author), `SU` (subject)
+- Apply limiters: peer-reviewed, full text available, date range, source type
+- Example compound search: `TI "digital marketing" AND SU "consumer behaviour" AND peer-reviewed`
+
+### Talis Aspire Reading Lists
+
+Access module-specific reading lists at `regents.rl.talis.com`. Talis Aspire is integrated with the library catalogue and provides direct links to digitised readings, e-books, and journal articles curated by module leaders.
+
+**Usage tips:**
+- Search by module code or module name
+- Items are tagged with importance: Essential, Recommended, Further Reading
+- Links resolve directly to full-text resources via library subscriptions
+- Use reading lists as a starting point for literature reviews on module-specific topics
+
+### Library Catalogue
+
+The heritage catalogue is available at `libcat.regents.ac.uk` and indexes approximately 40,000 print items and 60,000 digital resources.
+
+**Search tips:**
+- Search by keyword, title, author, or subject heading
+- Use the catalogue to check physical availability and shelf location
+- Digital resources link out to the relevant platform (EBSCO, ProQuest, etc.)
+- Reserve items that are currently on loan
+
+### LibGuides Subject Guides
+
+Subject-specific research guides are maintained by librarians at `regents-uk.libguides.com`. Each guide covers a discipline or topic area and includes:
+
+- Recommended databases for the subject
+- Search strategy advice
+- Key journals and publishers
+- Referencing guidance
+- Links to tutorials and research skills resources
+
+**The A-Z database list is available at `regents-uk.libguides.com/az.php`** — use this to browse all databases the library subscribes to, filtered by subject area or content type.
+
+### PressReader
+
+PressReader provides access to thousands of newspapers and magazines from around the world. Use PressReader for:
+
+- Current affairs and news analysis
+- Media coverage of companies, industries, or events
+- International perspectives on global issues
+- Feature articles and investigative journalism
+- Historical news archive searches
+
+Access PressReader through the library portal for full institutional access.
+
+### SCONUL Access (Inter-Library Borrowing)
+
+SCONUL (Society of College, National and University Libraries) provides cross-university borrowing privileges. Regent's students and staff can:
+
+- Borrow physical items from other SCONUL member libraries across the UK
+- Access reference-only materials at partner institutions
+- Use reading rooms and study spaces at member universities
+
+**To use SCONUL:**
+1. Apply for a SCONUL Access card through the Tate Library
+2. Check which libraries participate and their specific access policies
+3. Present the card at the partner library's issue desk
+4. Note that borrowing limits and loan periods vary by institution
+
+### Proxy and VPN Access
+
+When accessing library resources off-campus:
+
+- **EZproxy**: Most database links from the library website or LibGuides are proxy-enabled — they will prompt for Regent's login credentials automatically
+- **VPN**: For databases that require IP-based authentication, connect to the Regent's VPN before accessing the resource
+- **Bookmarklet**: Install the library's EZproxy bookmarklet to add proxy authentication to any supported database URL
+- **Troubleshooting**: If access is denied, check that you are logged in, try a different browser, clear cookies, or contact the library helpdesk
+- **Off-campus tip**: Always start your search from the library website or LibGuides to ensure proxy URLs are correctly applied
