@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "finding.schema.json",
+  "title": "Finding",
+  "description": "Structured output from a specialist agent after completing work",
+  "type": "object",
+  "required": ["id", "handoff_id", "agent", "status", "summary", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^finding-[0-9]{8}-[a-z0-9]{6}$"
+    },
+    "handoff_id": {
+      "type": "string",
+      "description": "The handoff this finding responds to"
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent that produced this finding"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "blocked", "failed"],
+      "description": "Outcome of the work"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-paragraph description of what was done"
+    },
+    "files_changed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "action"],
+        "properties": {
+          "path": {"type": "string"},
+          "action": {"type": "string", "enum": ["created", "modified", "deleted"]},
+          "description": {"type": "string"}
+        }
+      }
+    },
+    "acceptance_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion", "met"],
+        "properties": {
+          "criterion": {"type": "string"},
+          "met": {"type": "boolean"},
+          "evidence": {"type": "string"}
+        }
+      },
+      "description": "Each acceptance criterion from the handoff, evaluated"
+    },
+    "risks": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Known risks or concerns"
+    },
+    "follow_up_tasks": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Suggested follow-up work"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

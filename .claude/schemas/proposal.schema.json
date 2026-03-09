@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "proposal.schema.json",
+  "title": "PolicyProposal",
+  "description": "Proposed change to CLAUDE.md or system rules",
+  "type": "object",
+  "required": ["id", "title", "proposed_by", "change_type", "rationale", "diff", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^proposal-[0-9]{8}-[a-z0-9]{6}$"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "proposed_by": {
+      "type": "string",
+      "description": "Agent or user who proposed this"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["add_rule", "modify_rule", "remove_rule", "add_section", "modify_section", "add_agent", "modify_agent"],
+      "description": "Category of change"
+    },
+    "target_file": {
+      "type": "string",
+      "description": "File to be modified (usually CLAUDE.md)"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why this change improves the system"
+    },
+    "diff": {
+      "type": "object",
+      "required": ["before", "after"],
+      "properties": {
+        "before": {"type": "string", "description": "Current text (empty for additions)"},
+        "after": {"type": "string", "description": "Proposed text (empty for removals)"},
+        "section": {"type": "string", "description": "Which section is affected"}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Quality reports, findings, or incidents supporting this change"
+    },
+    "risk_assessment": {
+      "type": "string",
+      "description": "What could go wrong if this change is made"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "evaluating", "approved", "rejected", "promoted"],
+      "default": "pending"
+    }
+  },
+  "additionalProperties": false
+}

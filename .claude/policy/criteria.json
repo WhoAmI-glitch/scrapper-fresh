@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "description": "Criteria for evaluating policy change proposals",
+  "requirements": {
+    "mandatory": [
+      "Proposal must include rationale with at least one concrete example",
+      "Proposal must include risk assessment",
+      "Proposal must not contradict existing immutable rules without explicit override justification",
+      "Proposal must have supporting evidence (quality reports, findings, or incident references)"
+    ],
+    "scoring": [
+      {
+        "criterion": "impact",
+        "weight": 0.3,
+        "description": "How much does this improve system quality or productivity?"
+      },
+      {
+        "criterion": "safety",
+        "weight": 0.3,
+        "description": "Does this maintain or improve system safety guarantees?"
+      },
+      {
+        "criterion": "simplicity",
+        "weight": 0.2,
+        "description": "Does this reduce complexity or at least not increase it?"
+      },
+      {
+        "criterion": "evidence",
+        "weight": 0.2,
+        "description": "Is the proposal backed by concrete data from system operation?"
+      }
+    ],
+    "thresholds": {
+      "promote": 75,
+      "defer": 50,
+      "reject": 0
+    }
+  },
+  "process": [
+    "1. Proposal submitted to policy/proposals/ as proposal-YYYYMMDD-random.json",
+    "2. policy-maintainer evaluates against mandatory requirements",
+    "3. If mandatory requirements met, score against weighted criteria",
+    "4. Score >= 75: promote to CLAUDE.md, update CHANGELOG",
+    "5. Score 50-74: defer with feedback for revision",
+    "6. Score < 50: reject with reasoning"
+  ]
+}

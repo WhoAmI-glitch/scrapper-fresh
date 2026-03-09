@@ -1,0 +1,68 @@
+{
+  "$schema": "../schemas/quality-gates.schema.json",
+  "version": "1.0.0",
+  "thresholds": {
+    "accept": 80,
+    "accept_with_notes": 60,
+    "reject": 0
+  },
+  "checks": [
+    {
+      "name": "correctness",
+      "weight": 0.25,
+      "description": "Code compiles, logic is correct, no runtime errors",
+      "automated": true,
+      "command": "quality/scripts/validate.sh correctness"
+    },
+    {
+      "name": "completeness",
+      "weight": 0.20,
+      "description": "All acceptance criteria from handoff are met",
+      "automated": false,
+      "evaluator": "qa agent reviews finding.acceptance_results"
+    },
+    {
+      "name": "regressions",
+      "weight": 0.20,
+      "description": "Existing tests still pass, no broken functionality",
+      "automated": true,
+      "command": "quality/scripts/validate.sh regressions"
+    },
+    {
+      "name": "duplication",
+      "weight": 0.10,
+      "description": "No duplicate files, logic, schemas, or responsibilities introduced",
+      "automated": true,
+      "command": "quality/scripts/check-duplication.sh"
+    },
+    {
+      "name": "contracts",
+      "weight": 0.10,
+      "description": "All JSON artifacts conform to their schemas",
+      "automated": true,
+      "command": "quality/scripts/validate.sh contracts"
+    },
+    {
+      "name": "tests",
+      "weight": 0.10,
+      "description": "New behavior has tests, coverage not decreased",
+      "automated": true,
+      "command": "quality/scripts/validate.sh tests"
+    },
+    {
+      "name": "runnability",
+      "weight": 0.03,
+      "description": "Project starts and serves requests successfully",
+      "automated": true,
+      "command": "quality/scripts/validate.sh runnability"
+    },
+    {
+      "name": "documentation",
+      "weight": 0.02,
+      "description": "Public APIs documented, meaningful commit messages",
+      "automated": false,
+      "evaluator": "qa agent reviews finding.files_changed"
+    }
+  ],
+  "scoring": "Sum of (check.passed ? check.weight : 0) * 100. Compare against thresholds."
+}

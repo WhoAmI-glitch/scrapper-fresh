@@ -1,0 +1,82 @@
+{
+  "$schema": "../schemas/registry.schema.json",
+  "version": "1.0.0",
+  "agents": {
+    "coordinator": {
+      "file": "coordinator.md",
+      "role": "Lead orchestrator — decomposes tasks, dispatches to specialists, merges results",
+      "triggers": ["any new task", "ambiguous request", "multi-domain work"],
+      "owns": ["task decomposition", "dispatch", "result merging", "final reporting"],
+      "does_not_own": ["implementation details", "domain expertise"]
+    },
+    "architect": {
+      "file": "architect.md",
+      "role": "Systems architect — designs structures, schemas, dependencies, ADRs",
+      "triggers": ["architecture", "system design", "schema design", "dependency decisions", "ADR", "monorepo structure"],
+      "owns": ["system design", "schema design", "ADRs", "tech stack decisions"],
+      "does_not_own": ["writing application code", "testing", "deployment"]
+    },
+    "backend": {
+      "file": "backend.md",
+      "role": "Backend engineer — APIs, databases, server logic, auth, migrations",
+      "triggers": ["API", "endpoint", "database", "migration", "auth", "server", "FastAPI", "SQLAlchemy", "PostgreSQL"],
+      "owns": ["API endpoints", "DB schema", "migrations", "server logic", "auth"],
+      "does_not_own": ["frontend", "infrastructure", "system design"]
+    },
+    "frontend": {
+      "file": "frontend.md",
+      "role": "Frontend engineer — UI components, pages, client state, accessibility",
+      "triggers": ["React", "Next.js", "Tailwind", "UI", "component", "page", "layout", "CSS"],
+      "owns": ["UI components", "client state", "pages", "accessibility", "responsive design"],
+      "does_not_own": ["API design", "database", "infrastructure"]
+    },
+    "data": {
+      "file": "data.md",
+      "role": "Data engineer — pipelines, ETL, scraping, analytics, ML integration",
+      "triggers": ["pipeline", "ETL", "scraping", "analytics", "ML", "data quality", "enrichment"],
+      "owns": ["data pipelines", "scraping logic", "data quality", "ML integration", "analytics"],
+      "does_not_own": ["API endpoints", "UI", "deployment"]
+    },
+    "research": {
+      "file": "research.md",
+      "role": "Research analyst — market intel, academic research, citations, competitor analysis",
+      "triggers": ["research", "competitor", "market", "academic", "citation", "literature", "library"],
+      "owns": ["market research", "academic research", "citations", "competitor tracking"],
+      "does_not_own": ["implementation", "testing", "deployment"]
+    },
+    "qa": {
+      "file": "qa.md",
+      "role": "QA engineer — testing strategy, coverage, e2e, performance, regression detection",
+      "triggers": ["test", "testing", "QA", "coverage", "e2e", "performance", "regression", "quality"],
+      "owns": ["test strategy", "test implementation", "coverage", "performance testing", "quality reports"],
+      "does_not_own": ["feature implementation", "deployment", "system design"]
+    },
+    "devops": {
+      "file": "devops.md",
+      "role": "DevOps engineer — CI/CD, Docker, infrastructure-as-code, monitoring, deploys",
+      "triggers": ["CI/CD", "Docker", "Kubernetes", "Terraform", "deploy", "infrastructure", "monitoring"],
+      "owns": ["CI/CD pipelines", "containerization", "infrastructure", "monitoring", "deployments"],
+      "does_not_own": ["application logic", "testing strategy", "system design"]
+    },
+    "reporter": {
+      "file": "reporter.md",
+      "role": "Reporter — structured reports, stakeholder comms, documentation, summaries",
+      "triggers": ["report", "summary", "documentation", "stakeholder", "brief", "digest"],
+      "owns": ["reports", "summaries", "stakeholder communications", "documentation updates"],
+      "does_not_own": ["code changes", "testing", "deployment"]
+    },
+    "policy-maintainer": {
+      "file": "policy-maintainer.md",
+      "role": "Policy maintainer — evaluates proposals, manages rule evolution, maintains CHANGELOG",
+      "triggers": ["policy", "rule change", "improvement proposal", "CLAUDE.md update"],
+      "owns": ["proposal evaluation", "rule promotion", "CHANGELOG", "criteria management"],
+      "does_not_own": ["task execution", "quality testing", "deployment"]
+    }
+  },
+  "routing_rules": [
+    "If task spans multiple domains, coordinator decomposes and dispatches to multiple agents",
+    "If task is ambiguous, coordinator clarifies before dispatch",
+    "policy-maintainer is the ONLY agent that may modify CLAUDE.md",
+    "qa agent runs quality gate after every specialist completes work"
+  ]
+}

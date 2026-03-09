@@ -2,14 +2,22 @@
   "model": "sonnet",
   "autonomyMode": "high",
   "defaultShell": "bash",
-  "taskLogsDir": ".claude/task-logs",
   "preferredPackageManager": "pnpm",
   "preferredPythonTooling": "uv",
   "protectedPaths": [".env", ".env.local", ".env.production", "secrets/", "certs/"],
-  "safeWriteGlobs": ["apps/**", "packages/**", "infra/**", "docs/**", ".claude/**", ".devcontainer/**", ".env.example"],
-  "defaultValidation": {
-    "frontend": "pnpm --filter web typecheck && pnpm --filter web test",
-    "backend": "cd apps/api && pytest",
-    "workspace": "pnpm lint && pnpm typecheck"
+  "safeWriteGlobs": [
+    "apps/**", "packages/**", "infra/**", "docs/**",
+    ".claude/agents/**", ".claude/commands/**", ".claude/schemas/**",
+    ".claude/state/**", ".claude/quality/**", ".claude/policy/**",
+    ".claude/skills/**", ".claude/hooks/**",
+    ".devcontainer/**", ".env.example"
+  ],
+  "agentRegistry": ".claude/agents/REGISTRY.json",
+  "stateDir": ".claude/state",
+  "schemasDir": ".claude/schemas",
+  "qualityGates": ".claude/quality/gates.json",
+  "hooks": {
+    "pre-commit": ".claude/hooks/pre-commit.sh",
+    "post-task": ".claude/hooks/post-task.sh"
   }
 }

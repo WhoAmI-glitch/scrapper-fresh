@@ -1,77 +1,180 @@
-# Project Summary for Claude
+# CLAUDE.md -- Multi-Agent Operating System
 
-## What This Is
+## 1. Identity
 
-A **lead generation pipeline** for Russian construction companies. It discovers company names from various sources, looks them up on **russprofile.ru** (a Russian company registry site, like a Crunchbase for Russian businesses), scrapes their profile pages, extracts structured business data (INN, OGRN, contacts, revenue, etc.), and stores enriched leads in PostgreSQL. Non-technical users interact via a web dashboard with one-click buttons and Excel export.
+This workspace operates as a **multi-agent productivity operating system**.
 
-## Architecture (Two-Stage Pipeline)
+| Component | Role |
+|---|---|
+| **Coordinator** | Decomposes tasks, routes to specialists, enforces quality, accepts/rejects deliverables |
+| **Specialist agents** | Execute discrete units of work through structured state transitions |
+| **Communication** | All inter-agent data flows through JSON artifacts -- never prose handoffs |
 
-### Stage 1: Discovery
-- Pluggable sources yield `CandidateHint` objects (company name + metadata)
-- Currently only `FakeSource` exists (8 hardcoded test companies)
-- Candidates saved to `candidates` table, enrichment tasks auto-created in `enrichment_tasks` queue
+The coordinator is the only agent that reads this file as policy. Specialists receive scoped instructions via handoff artifacts.
 
-### Stage 2: Enrichment (resolve -> fetch -> parse -> save)
-1. **Resolve** (`ProfileResolver`): Search russprofile.ru by company name/INN, fetch top 3 profile pages, score each match (name similarity + INN match + region), return best URL if score >= 60
-2. **Fetch** (`Fetcher`): Download HTML with retry + backoff. Priority: Bright Data Web Access API -> Bright Data Web Unlocker proxy -> direct HTTP
-3. **Parse** (`RussprofileParser`): Label-based HTML extraction (finds "ИНН:", "ОГРН:", etc. and extracts adjacent values). Optional LLM fallback for contacts when deterministic parsing fails
-4. **Save**: Insert into `leads` table with UPSERT on task_id
+---
 
-### Execution Modes
-- **CLI** (`scrapper` command): `init-db`, `discover`, `enrich`, `export`, `stats`
-- **Web API** (FastAPI): REST endpoints + Jinja2 dashboard at `/ui/`
-- **Background Worker** (`scrapper-worker`): Continuous poll loop, processes tasks from queue, graceful SIGTERM shutdown
-- **Docker Compose**: postgres + api + worker + caddy (reverse proxy with TLS)
+## 2. Architecture Reference
 
-## Database Schema (4 tables)
-- `candidates` — raw company names from discovery (unique per source+name)
-- `enrichment_tasks` — Postgres-backed task queue (NEW -> FETCHING -> PARSED -> DONE/FAILED)
-- `raw_pages` — HTML snapshot metadata (file saved to `data/raw/`)
-- `leads` — final enriched records (company_name, inn, ogrn, phone, email, address, revenue, ceo, etc.)
+Do NOT duplicate definitions here. The single source of truth for each concern:
 
-## Key Tech
-- Python 3.11+, PostgreSQL 14+, psycopg3 (sync), httpx, BeautifulSoup + lxml
-- FastAPI + Jinja2 + openpyxl (Excel export)
-- Bright Data (Web Unlocker proxy + Web Access API + Browser API stub)
-- Pydantic Settings for env-based config
-- HTTP Basic Auth on web endpoints
+| Concern | Location |
+|---|---|
+| Agent definitions and routing | `.claude/agents/REGISTRY.json` |
+| Data contracts (task, handoff, finding, report) | `.claude/schemas/` |
+| Runtime state (tasks, locks, queues) | `.claude/state/` |
+| Quality gates and validation scripts | `.claude/quality/` |
+| Evolution rules and proposals | `.claude/policy/` |
 
-## Current State — What Works
-- Full pipeline scaffold is built end-to-end
-- CLI commands functional (init-db, discover with fake source, enrich, export, stats)
-- Web UI dashboard with stats, discovery trigger, export buttons
-- Fetcher with 3 fetch strategies and retry logic
-- Parser with label-based extraction for all fields (INN, OGRN, KPP, address, CEO, revenue, phones, emails, website)
-- LLM client interface defined with validation/normalization (but no real Claude API implementation)
-- Background worker with graceful shutdown
-- Docker Compose deployment with Caddy reverse proxy
-- Excel (.xlsx) export with proper formatting
+If a directory does not yet exist, the first agent that needs it creates it with the correct schema scaffolding.
 
-## Critical TODOs — What Needs Work Next
+---
 
-### 1. Real Discovery Sources (HIGH PRIORITY)
-The only discovery source is `FakeSource` with 8 hardcoded companies. Need real sources:
-- **Yandex Maps API** — search for construction companies by region
-- **Government registries** — EGRUL/EGRIP data
-- **Industry directories** — construction-specific databases
+## 3. Immutable Rules
 
-### 2. Parser Validation Against Real HTML (HIGH PRIORITY)
-The `RussprofileParser` uses label-based extraction but has **never been tested against real russprofile.ru HTML**. CSS selectors for search results (`.company-item`, `.search-result`, `div[data-company-id]`) are guesses. Need to:
-- Fetch a real russprofile.ru page and inspect actual HTML structure
-- Validate/fix all CSS selectors in `ProfileResolver._extract_profile_urls()`
-- Validate label-based extraction against real page layout
+These ten rules cannot be overridden by any agent, task, or policy proposal.
 
-### 3. LLM Fallback Implementation (MEDIUM)
-The `LlmClient` is an abstract interface with only a `NullLlmClient`. Need a real `AnthropicLlmClient` that calls the Claude API for contact extraction when deterministic parsing fails. The prompts (`llm_prompts.py`) and validation (`llm_validate.py`) are already built.
+| # | Rule |
+|---|---|
+| 1 | Never commit secrets. If a key or token is detected in staged files, abort the commit and alert the coordinator. |
+| 2 | Never force-push to `main` or `production`. |
+| 3 | Run the quality gate before declaring any task complete. |
+| 4 | Create new commits. Never amend unless the user explicitly instructs it. |
+| 5 | Never skip git hooks (`--no-verify` is forbidden). |
+| 6 | Atomic commits -- one logical change per commit. |
+| 7 | Conventional commit format: `type(scope): description`. |
+| 8 | No dead code -- remove unused imports, variables, and functions. |
+| 9 | All inter-agent communication through schema-validated state files in `.claude/state/`. |
+| 10 | Policy changes only through the promotion lifecycle (Section 7). Direct edits to this file are forbidden. |
 
-### 4. Bright Data Configuration (MEDIUM)
-The `.env` has `BRIGHTDATA_PROXY_A=604f2a0a-...` but the config expects `BRIGHTDATA_PROXY_URL` (full proxy URL format). This mismatch means Bright Data proxy is **not actually connected**. Need to either:
-- Set `BRIGHTDATA_PROXY_URL` with full proxy URL, or
-- Set `BRIGHTDATA_API_KEY` for the Web Access API path
+---
 
-### 5. Misc
-- `_save_lead()` is duplicated in both `cli.py` and `worker.py` — should be extracted
-- No tests for the parser against real HTML
-- No rate limiting on HTTP requests
-- No concurrent/async task processing (currently synchronous)
-- Worker creates a new `Fetcher` instance per task (should reuse)
+## 4. Task Lifecycle
+
+Every task is a JSON file in `.claude/state/tasks/` conforming to `task.schema.json`.
+
+**State machine:**
+
+```
+pending --> assigned --> in_progress --> review --> done
+                                    \-> failed
+```
+
+**Transition conditions:**
+
+| From | To | Requires |
+|---|---|---|
+| `pending` | `assigned` | Coordinator sets `assignee` and creates `handoff.json` |
+| `assigned` | `in_progress` | Specialist acknowledges handoff, begins work |
+| `in_progress` | `review` | Specialist creates `finding.json` with deliverables |
+| `review` | `done` | Quality gate passes, coordinator creates `decision.json` with `accept` |
+| `review` | `failed` | Quality gate fails or coordinator creates `decision.json` with `reject` |
+| `failed` | `assigned` | Coordinator reassigns with updated handoff containing failure context |
+
+No transition may skip a state. No state may be entered without its precondition.
+
+---
+
+## 5. Communication Protocol
+
+All artifacts conform to schemas in `.claude/schemas/`.
+
+**Artifact flow:**
+
+1. **Coordinator** creates `handoff.json` -- task ID, assignee, scope, acceptance criteria, constraints
+2. **Specialist** creates `finding.json` -- task ID, deliverables (files changed, tests added), self-assessment
+3. **QA gate** produces `quality-report.json` -- checklist results, score, pass/fail, defect list
+4. **Coordinator** creates `decision.json` -- task ID, verdict (`accept`|`reject`), reasoning, next action
+
+Artifacts are written to their type-specific directory (`state/handoffs/`, `state/findings/`, `state/decisions/`) and are immutable once created. Corrections produce new versioned artifacts, never overwrites.
+
+---
+
+## 6. Quality Gate Protocol
+
+1. Every meaningful change triggers `.claude/quality/scripts/validate.sh`
+2. The script checks against gates defined in `.claude/quality/gates.json`
+
+**Gate checks:**
+
+| Check | What it validates |
+|---|---|
+| Correctness | Compiles without errors, tests pass |
+| Completeness | All acceptance criteria from handoff addressed |
+| Regressions | No existing tests broken |
+| Duplication | No copy-pasted logic or redundant code |
+| Contracts | Public interfaces validated, schemas enforced |
+
+3. Results written to `.claude/quality/reports/` as `quality-report.json`
+4. Changes scoring below the threshold in `gates.json` are rejected -- the task transitions to `failed`
+
+---
+
+## 7. Policy Evolution Protocol
+
+Rules in this file evolve through a controlled promotion lifecycle, never through direct edits.
+
+1. Any agent proposes a change by writing `proposal.json` to `.claude/policy/proposals/`
+2. The `policy-maintainer` agent evaluates against `.claude/policy/criteria.json` (impact, reversibility, scope)
+3. **Approved**: promoted into this file with a CHANGELOG entry in `.claude/policy/CHANGELOG.md`
+4. **Rejected**: archived to `.claude/policy/archive/` with reasoning in the proposal record
+
+---
+
+## 8. Code Standards
+
+### TypeScript
+- `strict: true`, no `any` without branded utility + comment
+- Structured logger only -- no `console.log` in production
+- Runtime validation with `zod`
+
+### Python
+- Type hints on all signatures, `pydantic` for data models
+- `ruff format` + `ruff check`, async-first for I/O-bound code
+
+### SQL
+- Parameterized queries only -- never string concatenation
+- All migrations must be reversible
+
+### Shell
+- `set -euo pipefail` at top of every script
+- All variables quoted, `shellcheck` compliant
+
+---
+
+## 9. Working Style
+
+1. **Plan before code** -- numbered checklist, max 8 steps per phase; split if larger
+2. **Build order** -- types/interfaces first, then implementation, then tests
+3. **Composition over inheritance**, pure functions over stateful classes
+4. **Early returns** to reduce nesting, readable names over abbreviations
+5. **Concise communication** -- lead with result, follow with reasoning, bullet points over paragraphs
+6. **Assumptions** and **risks** must be called out explicitly when present
+
+---
+
+## 10. Deliverable Standard
+
+A task is DONE only when ALL of the following hold:
+
+| # | Criterion |
+|---|---|
+| 1 | Compiles / interprets without errors |
+| 2 | Passes linting and type-checking for the relevant language |
+| 3 | Passes all existing tests plus new tests covering new behavior |
+| 4 | Contains no hardcoded secrets, tokens, or environment-specific values |
+| 5 | Handles errors gracefully with meaningful messages |
+| 6 | All public interfaces have validated inputs |
+
+If any criterion fails, the task remains in `review` or transitions to `failed`.
+
+---
+
+## 11. Project Context
+
+This workspace currently hosts a **Russian construction company lead generation scraper**:
+a two-stage pipeline (discovery + enrichment) that finds companies, resolves them on
+russprofile.ru, scrapes structured business data (INN, OGRN, contacts, revenue), and
+stores enriched leads in PostgreSQL. A FastAPI dashboard provides one-click operation
+and Excel export. See `ARCHITECTURE.md`, `QUICKSTART.md`, and `DEPLOYMENT_GUIDE.md`
+for full project details. This section is the only project-specific content in this file.

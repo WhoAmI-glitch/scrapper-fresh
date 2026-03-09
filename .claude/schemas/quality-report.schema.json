@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quality-report.schema.json",
+  "title": "QualityReport",
+  "description": "Quality gate evaluation result. Produced by qa agent after every finding.",
+  "type": "object",
+  "required": ["id", "finding_id", "task_id", "checks", "score", "verdict", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^qr-[0-9]{8}-[a-z0-9]{6}$"
+    },
+    "finding_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "passed", "weight"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["correctness", "completeness", "regressions", "duplication", "contracts", "tests", "runnability", "documentation"]
+          },
+          "passed": {"type": "boolean"},
+          "weight": {"type": "number", "minimum": 0, "maximum": 1},
+          "details": {"type": "string"}
+        }
+      },
+      "description": "Individual quality checks with weights"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Weighted score across all checks"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["accept", "reject", "accept_with_notes"],
+      "description": "Based on score vs threshold in gates.json"
+    },
+    "blocking_issues": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Issues that cause rejection"
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Non-blocking observations"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision.schema.json",
+  "title": "Decision",
+  "description": "Record of a coordinator or policy-maintainer decision",
+  "type": "object",
+  "required": ["id", "type", "reference_id", "decision", "reasoning", "decided_by", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^decision-[0-9]{8}-[a-z0-9]{6}$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["task_completion", "task_rejection", "policy_promotion", "policy_rejection"],
+      "description": "What kind of decision this is"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID of the task, finding, or proposal being decided on"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["accept", "reject", "defer"],
+      "description": "The decision"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Brief justification"
+    },
+    "decided_by": {
+      "type": "string",
+      "description": "coordinator or policy-maintainer"
+    },
+    "follow_up": {
+      "type": ["string", "null"],
+      "description": "Next action if any"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

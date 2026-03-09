@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "handoff.schema.json",
+  "title": "Handoff",
+  "description": "Structured context passed from coordinator to specialist agent",
+  "type": "object",
+  "required": ["id", "task_id", "from_agent", "to_agent", "context", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^handoff-[0-9]{8}-[a-z0-9]{6}$"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "The task this handoff is for"
+    },
+    "from_agent": {
+      "type": "string",
+      "description": "Sending agent (usually coordinator)"
+    },
+    "to_agent": {
+      "type": "string",
+      "description": "Receiving agent (from REGISTRY.json)"
+    },
+    "context": {
+      "type": "object",
+      "required": ["objective", "acceptance_criteria"],
+      "properties": {
+        "objective": {
+          "type": "string",
+          "description": "What the specialist must achieve"
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "Concrete, testable conditions for success"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Boundaries the specialist must respect"
+        },
+        "relevant_files": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "File paths the specialist should read"
+        },
+        "prior_findings": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Finding IDs from previous work in this task chain"
+        },
+        "skills": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Skill names from .claude/skills/ to activate"
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Which attempt this is (increments on rejection + re-dispatch)"
+    },
+    "feedback_from_review": {
+      "type": ["string", "null"],
+      "description": "Feedback from previous quality review if this is a retry"
+    }
+  },
+  "additionalProperties": false
+}

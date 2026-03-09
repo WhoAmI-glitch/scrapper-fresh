@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task.schema.json",
+  "title": "Task",
+  "description": "A unit of work in the agent system. Single source of truth for task state.",
+  "type": "object",
+  "required": ["id", "title", "status", "created_at", "created_by"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^task-[0-9]{8}-[a-z0-9]{6}$",
+      "description": "Unique task ID: task-YYYYMMDD-random6"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Short imperative description"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed requirements and acceptance criteria"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "assigned", "in_progress", "review", "done", "failed"],
+      "description": "Deterministic state machine: pending→assigned→in_progress→review→done|failed"
+    },
+    "assigned_agent": {
+      "type": ["string", "null"],
+      "description": "Agent key from REGISTRY.json"
+    },
+    "parent_task_id": {
+      "type": ["string", "null"],
+      "description": "If this was decomposed from a larger task"
+    },
+    "subtask_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Child tasks if decomposed"
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Task IDs that must complete before this one starts"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "user | coordinator | agent-name"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["critical", "high", "normal", "low"],
+      "default": "normal"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "handoff_id": {
+      "type": ["string", "null"],
+      "description": "Reference to the handoff that dispatched this work"
+    },
+    "finding_id": {
+      "type": ["string", "null"],
+      "description": "Reference to the finding that completed this work"
+    },
+    "quality_report_id": {
+      "type": ["string", "null"],
+      "description": "Reference to the quality report for this task"
+    }
+  },
+  "additionalProperties": false
+}
