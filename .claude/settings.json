@@ -10,6 +10,7 @@
     ".claude/agents/**", ".claude/commands/**", ".claude/schemas/**",
     ".claude/state/**", ".claude/quality/**", ".claude/policy/**",
     ".claude/skills/**", ".claude/hooks/**",
+    "rules/**", "scripts/**",
     ".devcontainer/**", ".env.example"
   ],
   "agentRegistry": ".claude/agents/REGISTRY.json",

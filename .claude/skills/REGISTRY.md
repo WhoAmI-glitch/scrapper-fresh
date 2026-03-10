@@ -1,6 +1,6 @@
 # Skill Registry
 
-Master index of all curated skills. 62 total: 15 S-tier + 47 A-tier.
+Master index of all curated skills. 82 total: 15 S-tier + 67 A-tier.
 
 ## Quick Reference by Domain
 
@@ -101,3 +101,47 @@ Master index of all curated skills. 62 total: 15 S-tier + 47 A-tier.
 | mcporter | A | a-tier/mcporter | MCP server CLI |
 | session-logs | A | a-tier/session-logs | Search session history |
 | store-data-structures | A | a-tier/store-data-structures | Zustand store patterns |
+
+### Agent & Workflow Orchestration
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| agent-orchestration | A | a-tier/agent-orchestration | Multi-agent coordination, team composition, task decomposition |
+| conductor-workflow | A | a-tier/conductor-workflow | Context-driven development with track-based feature management |
+| dispatching-parallel-agents | A | a-tier/dispatching-parallel-agents | Parallel dispatch of 2+ independent tasks |
+| executing-plans | A | a-tier/executing-plans | Execute implementation plans with review checkpoints |
+| planning-methodology | A | a-tier/planning-methodology | Structured plans with phased breakdown, dependencies, risk assessment |
+| writing-plans | A | a-tier/writing-plans | Create multi-step task plans from specs/requirements |
+
+### Code Quality & Testing
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| code-review-patterns | A | a-tier/code-review-patterns | Confidence-based code review with severity tiers |
+| systematic-debugging | A | a-tier/systematic-debugging | Bug investigation before proposing fixes |
+| test-driven-development | A | a-tier/test-driven-development | TDD workflow: tests before implementation |
+| webapp-testing | A | a-tier/webapp-testing | Playwright-based web app testing and screenshots |
+
+### Document Generation
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| docx | A | a-tier/docx | Create, read, edit Word .docx documents |
+| pdf | A | a-tier/pdf | Read, merge, split, create, OCR PDF files |
+| pptx | A | a-tier/pptx | Create, read, edit PowerPoint .pptx presentations |
+| xlsx | A | a-tier/xlsx | Create, read, edit Excel .xlsx spreadsheets |
+
+### Design & Prompting
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| frontend-design | A | a-tier/frontend-design | Production-grade frontend UI with high design quality |
+| prompt-engineering | A | a-tier/prompt-engineering | LLM prompt design, optimization, structured outputs |
+
+### Messaging & Communication
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| gws-gmail | A | a-tier/gws-gmail | Send, read, manage Gmail email |
+| telegram | A | a-tier/telegram | Send messages and schedule reminders via Telegram |
+
+### Development Practices
+| Skill | Tier | Path | Use For |
+|-------|------|------|---------|
+| continuous-learning | A | a-tier/continuous-learning | Extract reusable patterns from coding sessions |
+| hook-development | A | a-tier/hook-development | Build Claude Code hooks with configuration patterns |

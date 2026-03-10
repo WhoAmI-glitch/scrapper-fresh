@@ -36,6 +36,11 @@
       "type": ["string", "null"],
       "description": "Next action if any"
     },
+    "alternatives_considered": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Other options that were evaluated"
+    },
     "created_at": {
       "type": "string",
       "format": "date-time"

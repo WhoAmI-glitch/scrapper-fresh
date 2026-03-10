@@ -62,6 +62,20 @@
       "items": {"type": "string"},
       "description": "Suggested follow-up work"
     },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"],
+      "description": "Impact severity of the finding"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["bug", "security", "performance", "duplication", "design", "policy", "regression"],
+      "description": "Classification of the finding"
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "Suggested course of action"
+    },
     "created_at": {
       "type": "string",
       "format": "date-time"

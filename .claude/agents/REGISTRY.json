@@ -1,82 +1,215 @@
 {
-  "$schema": "../schemas/registry.schema.json",
-  "version": "1.0.0",
-  "agents": {
-    "coordinator": {
-      "file": "coordinator.md",
-      "role": "Lead orchestrator — decomposes tasks, dispatches to specialists, merges results",
-      "triggers": ["any new task", "ambiguous request", "multi-domain work"],
-      "owns": ["task decomposition", "dispatch", "result merging", "final reporting"],
-      "does_not_own": ["implementation details", "domain expertise"]
+  "title": "Agent Registry",
+  "description": "Canonical registry of all agents in the multi-agent system. Single source of truth for agent capabilities.",
+  "version": "2.0.0",
+  "agents": [
+    {
+      "name": "orchestrator",
+      "role": "Sole coordinator: decomposes briefs into task waves, manages dispatch sequencing, enforces quality gates.",
+      "owns": [".claude/state/tasks/", ".claude/state/handoffs/", ".claude/state/workflows/", "wave dispatch lifecycle"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "TaskCreate", "TaskGet", "TaskList"],
+      "veto_authority": false,
+      "model": "opus"
     },
-    "architect": {
-      "file": "architect.md",
-      "role": "Systems architect — designs structures, schemas, dependencies, ADRs",
-      "triggers": ["architecture", "system design", "schema design", "dependency decisions", "ADR", "monorepo structure"],
-      "owns": ["system design", "schema design", "ADRs", "tech stack decisions"],
-      "does_not_own": ["writing application code", "testing", "deployment"]
+    {
+      "name": "architect",
+      "role": "Pure design decisions and Architecture Decision Records. Decides WHAT and WHY, never HOW.",
+      "owns": [".claude/state/decisions/", "ADRs", "system design"],
+      "tools": ["Read", "Write", "Grep", "Glob", "WebSearch", "WebFetch"],
+      "veto_authority": false,
+      "model": "opus"
     },
-    "backend": {
-      "file": "backend.md",
-      "role": "Backend engineer — APIs, databases, server logic, auth, migrations",
-      "triggers": ["API", "endpoint", "database", "migration", "auth", "server", "FastAPI", "SQLAlchemy", "PostgreSQL"],
-      "owns": ["API endpoints", "DB schema", "migrations", "server logic", "auth"],
-      "does_not_own": ["frontend", "infrastructure", "system design"]
+    {
+      "name": "dev-lead",
+      "role": "Translates architecture into code structure, reviews PRs, decides HOW to build.",
+      "owns": ["code architecture", "PR reviews", "technical standards"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
     },
-    "frontend": {
-      "file": "frontend.md",
-      "role": "Frontend engineer — UI components, pages, client state, accessibility",
-      "triggers": ["React", "Next.js", "Tailwind", "UI", "component", "page", "layout", "CSS"],
-      "owns": ["UI components", "client state", "pages", "accessibility", "responsive design"],
-      "does_not_own": ["API design", "database", "infrastructure"]
+    {
+      "name": "frontend-builder",
+      "role": "Implements UI components, pages, and client-side logic with React/Tailwind.",
+      "owns": ["UI components", "client-side code", "styling"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
     },
-    "data": {
-      "file": "data.md",
-      "role": "Data engineer — pipelines, ETL, scraping, analytics, ML integration",
-      "triggers": ["pipeline", "ETL", "scraping", "analytics", "ML", "data quality", "enrichment"],
+    {
+      "name": "backend-builder",
+      "role": "Implements server-side logic, APIs, data models, and integrations.",
+      "owns": ["API endpoints", "server logic", "data layer"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "scaffolder",
+      "role": "Sets up project structure, boilerplate, configuration, and dependency management.",
+      "owns": ["project scaffolding", "build config", "dependency manifests"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "qa-reviewer",
+      "role": "Reviews outputs, writes tests, audits quality. HOLDS VETO AUTHORITY.",
+      "owns": [".claude/quality/", ".claude/state/findings/", "test suites", "quality reports"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": true,
+      "model": "opus"
+    },
+    {
+      "name": "devils-advocate",
+      "role": "Adversarial review: finds flaws, edge cases, unstated assumptions. HOLDS VETO on Critical.",
+      "owns": ["adversarial findings", "risk assessments"],
+      "tools": ["Read", "Grep", "Glob"],
+      "veto_authority": true,
+      "model": "opus"
+    },
+    {
+      "name": "researcher",
+      "role": "Conducts web research and synthesises findings into structured reports.",
+      "owns": ["research reports", "external knowledge"],
+      "tools": ["WebSearch", "WebFetch", "Read", "Write"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "deep-worker",
+      "role": "Complex multi-step reasoning, cross-domain synthesis, and escape-hatch for unscoped tasks.",
+      "owns": ["deep analysis artifacts"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "quick-task",
+      "role": "Simple lookups, formatting, calculations, and lightweight transformations.",
+      "owns": ["ephemeral outputs"],
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "veto_authority": false,
+      "model": "haiku"
+    },
+    {
+      "name": "deployer",
+      "role": "Deployment to Vercel/Railway, domain setup, SSL, DNS, environment variables.",
+      "owns": ["deployment scripts", "platform config"],
+      "tools": ["Bash", "Read", "Write", "Edit"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "devops-engineer",
+      "role": "IaC, CI/CD pipelines, cloud provisioning, containers, MCP servers, workflow automation.",
+      "owns": ["Terraform configs", "CI/CD pipelines", "Dockerfiles", "cloud infrastructure", "MCP servers"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "comms-drafter",
+      "role": "Drafts communications, correspondence, and external-facing content.",
+      "owns": ["draft communications"],
+      "tools": ["Read", "Write", "WebSearch"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "analyst",
+      "role": "Quantitative analysis, financial modelling, data exploration, and statistical reasoning.",
+      "owns": ["analysis outputs", "data summaries"],
+      "tools": ["Bash", "Read", "Write", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "notion-worker",
+      "role": "Manages Notion pages, databases, and content synchronisation.",
+      "owns": ["Notion workspace sync"],
+      "tools": ["mcp__claude_ai_Notion__notion-search", "mcp__claude_ai_Notion__notion-fetch", "mcp__claude_ai_Notion__notion-create-pages", "mcp__claude_ai_Notion__notion-update-page", "mcp__claude_ai_Notion__notion-create-database"],
+      "veto_authority": false,
+      "model": "haiku"
+    },
+    {
+      "name": "personal-ops",
+      "role": "Personal life admin: scheduling, reminders, travel logistics, errands.",
+      "owns": ["personal task tracking"],
+      "tools": ["Read", "Write", "WebSearch", "WebFetch", "Bash"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "art-director",
+      "role": "Visual design direction, brand guidelines, creative QA on assets and implementations.",
+      "owns": ["design direction", "brand guidelines", "visual QA reports"],
+      "tools": ["Read", "Write", "WebSearch", "mcp__claude_ai_Miro__diagram_create", "mcp__claude_ai_Miro__doc_create", "mcp__claude_ai_Miro__image_get_data", "mcp__claude_ai_Miro__image_get_url"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "policy-maintainer",
+      "role": "Sole guardian of CLAUDE.md. Processes proposals, evaluates against system integrity, promotes approved changes.",
+      "owns": ["CLAUDE.md", "state/proposals/", "policy versioning"],
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "python-pro",
+      "role": "Python language specialist: production code, async patterns, packaging, performance.",
+      "owns": ["Python implementation", "Python tooling config"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "typescript-pro",
+      "role": "TypeScript/JavaScript specialist: advanced types, Node.js patterns, modern frameworks.",
+      "owns": ["TypeScript implementation", "JS/TS tooling config"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "security-auditor",
+      "role": "Security specialist: SAST, threat modeling, vulnerability assessment, compliance.",
+      "owns": ["security findings", "threat models", "security configs"],
+      "tools": ["Bash", "Read", "Grep", "Glob", "WebSearch"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "database-architect",
+      "role": "Database design: schemas, indexing, migrations, query optimization, technology selection.",
+      "owns": ["database schemas", "migration files", "index strategies"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "opus"
+    },
+    {
+      "name": "ai-engineer",
+      "role": "AI/ML specialist: LLM applications, RAG systems, prompt engineering, embeddings.",
+      "owns": ["AI/ML implementations", "prompt templates", "vector pipelines"],
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "WebSearch"],
+      "veto_authority": false,
+      "model": "sonnet"
+    },
+    {
+      "name": "data",
+      "role": "Data engineer: pipelines, ETL, scraping, analytics, ML integration, data quality.",
       "owns": ["data pipelines", "scraping logic", "data quality", "ML integration", "analytics"],
-      "does_not_own": ["API endpoints", "UI", "deployment"]
+      "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
     },
-    "research": {
-      "file": "research.md",
-      "role": "Research analyst — market intel, academic research, citations, competitor analysis",
-      "triggers": ["research", "competitor", "market", "academic", "citation", "literature", "library"],
-      "owns": ["market research", "academic research", "citations", "competitor tracking"],
-      "does_not_own": ["implementation", "testing", "deployment"]
-    },
-    "qa": {
-      "file": "qa.md",
-      "role": "QA engineer — testing strategy, coverage, e2e, performance, regression detection",
-      "triggers": ["test", "testing", "QA", "coverage", "e2e", "performance", "regression", "quality"],
-      "owns": ["test strategy", "test implementation", "coverage", "performance testing", "quality reports"],
-      "does_not_own": ["feature implementation", "deployment", "system design"]
-    },
-    "devops": {
-      "file": "devops.md",
-      "role": "DevOps engineer — CI/CD, Docker, infrastructure-as-code, monitoring, deploys",
-      "triggers": ["CI/CD", "Docker", "Kubernetes", "Terraform", "deploy", "infrastructure", "monitoring"],
-      "owns": ["CI/CD pipelines", "containerization", "infrastructure", "monitoring", "deployments"],
-      "does_not_own": ["application logic", "testing strategy", "system design"]
-    },
-    "reporter": {
-      "file": "reporter.md",
-      "role": "Reporter — structured reports, stakeholder comms, documentation, summaries",
-      "triggers": ["report", "summary", "documentation", "stakeholder", "brief", "digest"],
+    {
+      "name": "reporter",
+      "role": "Reporter: structured reports, stakeholder communications, documentation, summaries.",
       "owns": ["reports", "summaries", "stakeholder communications", "documentation updates"],
-      "does_not_own": ["code changes", "testing", "deployment"]
-    },
-    "policy-maintainer": {
-      "file": "policy-maintainer.md",
-      "role": "Policy maintainer — evaluates proposals, manages rule evolution, maintains CHANGELOG",
-      "triggers": ["policy", "rule change", "improvement proposal", "CLAUDE.md update"],
-      "owns": ["proposal evaluation", "rule promotion", "CHANGELOG", "criteria management"],
-      "does_not_own": ["task execution", "quality testing", "deployment"]
+      "tools": ["Read", "Write", "Grep", "Glob"],
+      "veto_authority": false,
+      "model": "sonnet"
     }
-  },
-  "routing_rules": [
-    "If task spans multiple domains, coordinator decomposes and dispatches to multiple agents",
-    "If task is ambiguous, coordinator clarifies before dispatch",
-    "policy-maintainer is the ONLY agent that may modify CLAUDE.md",
-    "qa agent runs quality gate after every specialist completes work"
   ]
 }
