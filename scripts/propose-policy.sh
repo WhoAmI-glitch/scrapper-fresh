@@ -23,42 +23,49 @@ usage() {
 Usage: propose-policy.sh <command> [options]
 
 Commands:
-  create  --proposer AGENT --target-file PATH --change-type TYPE
-          --proposed-text TEXT --rationale RATIONALE
-          [--current-text TEXT] [--evidence "ref1,ref2"]
-          change-type: add_rule|modify_rule|remove_rule|add_agent|modify_agent
-  review  --id ID --verdict approve|reject|revise --reviewer AGENT
-          [--comment "review comment"]
+  create  --title TITLE --proposed-by AGENT --change-type TYPE
+          --rationale TEXT --after TEXT [--before TEXT] [--section SECTION]
+          [--target-file PATH] [--evidence "ref1,ref2"] [--risk-assessment TEXT]
+
+  review  --id ID --verdict approve|reject|request_changes --reviewer AGENT
+          [--comment TEXT]
+
   promote --id ID
+
+  change-type: add_rule | modify_rule | remove_rule | add_section | modify_section | add_agent | modify_agent
 USAGE
   exit 1
 }
 
 cmd_create() {
-  local proposer="" target_file="" change_type="" current_text="" proposed_text="" rationale="" evidence=""
+  local title="" proposed_by="" change_type="" before_text="" after_text=""
+  local section="" target_file="CLAUDE.md" rationale="" evidence="" risk_assessment=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --proposer)      proposer="$2"; shift 2 ;;
-      --target-file)   target_file="$2"; shift 2 ;;
-      --change-type)   change_type="$2"; shift 2 ;;
-      --current-text)  current_text="$2"; shift 2 ;;
-      --proposed-text) proposed_text="$2"; shift 2 ;;
-      --rationale)     rationale="$2"; shift 2 ;;
-      --evidence)      evidence="$2"; shift 2 ;;
+      --title)           title="$2"; shift 2 ;;
+      --proposed-by)     proposed_by="$2"; shift 2 ;;
+      --change-type)     change_type="$2"; shift 2 ;;
+      --before)          before_text="$2"; shift 2 ;;
+      --after)           after_text="$2"; shift 2 ;;
+      --section)         section="$2"; shift 2 ;;
+      --target-file)     target_file="$2"; shift 2 ;;
+      --rationale)       rationale="$2"; shift 2 ;;
+      --evidence)        evidence="$2"; shift 2 ;;
+      --risk-assessment) risk_assessment="$2"; shift 2 ;;
       *) echo "Unknown option: $1" >&2; usage ;;
     esac
   done
 
-  if [[ -z "$proposer" || -z "$target_file" || -z "$change_type" || -z "$proposed_text" || -z "$rationale" ]]; then
-    echo "Error: --proposer, --target-file, --change-type, --proposed-text, and --rationale are required." >&2
+  if [[ -z "$title" || -z "$proposed_by" || -z "$change_type" || -z "$after_text" || -z "$rationale" ]]; then
+    echo "Error: --title, --proposed-by, --change-type, --after, and --rationale are required." >&2
     usage
   fi
 
-  # Validate change_type enum
+  # Validate change_type enum (matches proposal.schema.json)
   case "$change_type" in
-    add_rule|modify_rule|remove_rule|add_agent|modify_agent) ;;
-    *) echo "Error: --change-type must be add_rule|modify_rule|remove_rule|add_agent|modify_agent" >&2; exit 1 ;;
+    add_rule|modify_rule|remove_rule|add_section|modify_section|add_agent|modify_agent) ;;
+    *) echo "Error: --change-type must be add_rule|modify_rule|remove_rule|add_section|modify_section|add_agent|modify_agent" >&2; exit 1 ;;
   esac
 
   local id
@@ -72,42 +79,60 @@ cmd_create() {
     evidence_json="$(echo "$evidence" | jq -R 'split(",") | map(ltrimstr(" ") | rtrimstr(" ")) | map(select(length > 0))')"
   fi
 
-  # Handle nullable current_text
-  local current_text_json="null"
-  if [[ -n "$current_text" ]]; then
-    current_text_json="$(printf '%s' "$current_text" | jq -Rs '.')"
-  fi
-
   mkdir -p "$PROPOSALS_DIR"
 
+  # Build the diff object (schema requires before + after)
+  local before_json
+  before_json="$(printf '%s' "$before_text" | jq -Rs '.')"
+  local after_json
+  after_json="$(printf '%s' "$after_text" | jq -Rs '.')"
+  local section_json="null"
+  if [[ -n "$section" ]]; then
+    section_json="$(printf '%s' "$section" | jq -Rs '.')"
+  fi
+
+  # Handle optional risk_assessment
+  local risk_json="null"
+  if [[ -n "$risk_assessment" ]]; then
+    risk_json="$(printf '%s' "$risk_assessment" | jq -Rs '.')"
+  fi
+
+  # Output conforms to .claude/schemas/proposal.schema.json
   jq -n \
     --arg id "$id" \
-    --arg proposer "$proposer" \
-    --arg target_file "$target_file" \
+    --arg title "$title" \
+    --arg proposed_by "$proposed_by" \
     --arg change_type "$change_type" \
-    --argjson current_text "$current_text_json" \
-    --arg proposed_text "$proposed_text" \
+    --arg target_file "$target_file" \
     --arg rationale "$rationale" \
+    --argjson before "$before_json" \
+    --argjson after "$after_json" \
+    --argjson section "$section_json" \
     --argjson evidence "$evidence_json" \
-    --arg status "draft" \
+    --argjson risk_assessment "$risk_json" \
+    --arg status "pending" \
     --arg created_at "$ts" \
     '{
       id: $id,
-      proposer: $proposer,
-      target_file: $target_file,
+      title: $title,
+      proposed_by: $proposed_by,
       change_type: $change_type,
-      current_text: $current_text,
-      proposed_text: $proposed_text,
+      target_file: $target_file,
       rationale: $rationale,
+      diff: {
+        before: $before,
+        after: $after,
+        section: $section
+      },
       evidence: $evidence,
-      status: $status,
+      risk_assessment: $risk_assessment,
       reviews: [],
-      created_at: $created_at,
-      promoted_at: null
+      status: $status,
+      created_at: $created_at
     }' > "$PROPOSALS_DIR/${id}.json"
 
   echo "Created proposal: $id"
-  echo "  Target: $target_file"
+  echo "  Title: $title"
   echo "  File: $PROPOSALS_DIR/${id}.json"
 }
 
@@ -139,15 +164,12 @@ cmd_review() {
     echo "Error: proposal $id not found." >&2; exit 1
   fi
 
-  local ts
-  ts="$(now_iso)"
-
-  # Build review entry and append it; update status based on verdict
+  # Map verdict to schema status enum
   local new_status
   case "$verdict" in
     approve)         new_status="approved" ;;
     reject)          new_status="rejected" ;;
-    request_changes) new_status="under_review" ;;
+    request_changes) new_status="evaluating" ;;
   esac
 
   jq --arg verdict "$verdict" \
@@ -184,30 +206,27 @@ cmd_promote() {
     echo "Error: proposal $id not found." >&2; exit 1
   fi
 
-  local status
-  status="$(jq -r '.status' "$proposal_file")"
+  local current_status
+  current_status="$(jq -r '.status' "$proposal_file")"
 
-  if [[ "$status" != "approved" ]]; then
-    echo "Error: proposal $id has status '$status'; only approved proposals can be promoted." >&2
+  if [[ "$current_status" != "approved" ]]; then
+    echo "Error: proposal $id has status '$current_status'; only approved proposals can be promoted." >&2
     exit 1
   fi
 
-  local proposed_text target_file
-  target_file="$(jq -r '.target_file' "$proposal_file")"
-  proposed_text="$(jq -r '.proposed_text // "(no text provided)"' "$proposal_file")"
-
-  local ts
-  ts="$(now_iso)"
-
-  jq --arg ts "$ts" '.status = "promoted" | .promoted_at = $ts' \
+  jq '.status = "promoted"' \
     "$proposal_file" > "$proposal_file.tmp" && mv "$proposal_file.tmp" "$proposal_file"
+
+  local after_text target_file
+  target_file="$(jq -r '.target_file // "CLAUDE.md"' "$proposal_file")"
+  after_text="$(jq -r '.diff.after // "(no text provided)"' "$proposal_file")"
 
   echo "Proposal $id promoted."
   echo ""
   echo "=== Policy change ready for policy-maintainer agent ==="
   echo "Target: $target_file"
   echo "Proposed text:"
-  echo "$proposed_text"
+  echo "$after_text"
   echo ""
   echo "The policy-maintainer agent should now apply this change to CLAUDE.md."
 }

@@ -31,16 +31,25 @@ if [ -n "${STAGED_FILES}" ]; then
     'redis://:[^@]+@'                            # Redis with password
   )
 
+  # Files that contain pattern definitions (not actual secrets)
+  PATTERN_FILES=(".claude/hooks/pre-commit.sh" "rules/common/security.md")
+
   FOUND_SECRETS=0
   for pattern in "${SECRET_PATTERNS[@]}"; do
-    echo "${STAGED_FILES}" | while read -r file; do
+    while IFS= read -r file; do
       if [ -f "${file}" ]; then
+        # Skip files that define the patterns themselves
+        skip=0
+        for pf in "${PATTERN_FILES[@]}"; do
+          if [[ "${file}" == *"${pf}" ]]; then skip=1; break; fi
+        done
+        [[ ${skip} -eq 1 ]] && continue
         if grep -qP "${pattern}" "${file}" 2>/dev/null || grep -qE "${pattern}" "${file}" 2>/dev/null; then
           echo "BLOCKED: Potential secret in ${file} matching pattern: ${pattern:0:20}..."
           FOUND_SECRETS=1
         fi
       fi
-    done
+    done <<< "${STAGED_FILES}"
   done
 
   if [ "${FOUND_SECRETS}" -eq 1 ]; then
@@ -66,13 +75,19 @@ done
 # ============================================================
 # 3. JSON VALIDATION (for .claude/ state files)
 # ============================================================
-echo "${STAGED_FILES}" | grep -E '\.claude/.*\.json$' | while read -r f; do
+json_fail=0
+while IFS= read -r f; do
+  [ -n "${f}" ] || continue
   if [ -f "${f}" ] && [ -s "${f}" ]; then
-    python3 -c "import json; json.load(open('${f}'))" 2>/dev/null || {
+    if ! python3 -c "import json; json.load(open('${f}'))" 2>/dev/null; then
       echo "BLOCKED: Invalid JSON: ${f}"
-      exit 1
-    }
+      json_fail=1
+    fi
   fi
-done
+done <<< "$(echo "${STAGED_FILES}" | grep -E '\.claude/.*\.json$' || true)"
+
+if [ "${json_fail}" -eq 1 ]; then
+  exit 1
+fi
 
 echo "Pre-commit checks passed."
