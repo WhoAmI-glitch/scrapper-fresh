@@ -25,7 +25,7 @@ Usage: orchestrate.sh <command> [options]
 
 Commands:
   create-task   --title TITLE --priority PRIORITY --description DESC
-                --criteria "c1,c2,c3" [--wave N] [--created-by AGENT]
+                [--tags "t1,t2"] [--created-by AGENT]
   assign-task   --id ID --to AGENT
   complete-task --id ID
   validate-task --id ID
@@ -36,30 +36,28 @@ USAGE
 }
 
 cmd_create_task() {
-  local title="" priority="" description="" criteria="" wave=1 created_by="orchestrator"
+  local title="" priority="" description="" tags="" created_by="orchestrator"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --title)       title="$2"; shift 2 ;;
       --priority)    priority="$2"; shift 2 ;;
       --description) description="$2"; shift 2 ;;
-      --criteria)    criteria="$2"; shift 2 ;;
-      --wave)        wave="$2"; shift 2 ;;
+      --tags)        tags="$2"; shift 2 ;;
       --created-by)  created_by="$2"; shift 2 ;;
       *) echo "Unknown option: $1" >&2; usage ;;
     esac
   done
 
-  # Validate required fields
-  if [[ -z "$title" || -z "$priority" || -z "$description" || -z "$criteria" ]]; then
-    echo "Error: --title, --priority, --description, and --criteria are required." >&2
+  if [[ -z "$title" || -z "$priority" || -z "$description" ]]; then
+    echo "Error: --title, --priority, and --description are required." >&2
     usage
   fi
 
-  # Validate priority enum
+  # Validate priority enum (matches task.schema.json)
   case "$priority" in
-    critical|high|medium|low) ;;
-    *) echo "Error: priority must be critical|high|medium|low" >&2; exit 1 ;;
+    critical|high|normal|low) ;;
+    *) echo "Error: priority must be critical|high|normal|low" >&2; exit 1 ;;
   esac
 
   local id
@@ -67,37 +65,40 @@ cmd_create_task() {
   local ts
   ts="$(now_iso)"
 
-  # Convert comma-separated criteria into JSON array
-  local criteria_json
-  criteria_json="$(echo "$criteria" | jq -R 'split(",")|map(ltrimstr(" ")|rtrimstr(" "))|map(select(length>0))')"
+  # Convert comma-separated tags into JSON array
+  local tags_json="[]"
+  if [[ -n "$tags" ]]; then
+    tags_json="$(echo "$tags" | jq -R 'split(",")|map(ltrimstr(" ")|rtrimstr(" "))|map(select(length>0))')"
+  fi
 
   mkdir -p "$TASKS_DIR"
 
+  # Output conforms to .claude/schemas/task.schema.json
   jq -n \
     --arg id "$id" \
     --arg title "$title" \
+    --arg description "$description" \
     --arg status "pending" \
-    --arg assigned_to "" \
     --arg created_by "$created_by" \
     --arg priority "$priority" \
-    --argjson wave "$wave" \
-    --arg description "$description" \
-    --argjson acceptance_criteria "$criteria_json" \
+    --argjson tags "$tags_json" \
     --arg created_at "$ts" \
     --arg updated_at "$ts" \
     '{
       id: $id,
       title: $title,
+      description: $description,
       status: $status,
-      assigned_to: $assigned_to,
+      assigned_agent: null,
       created_by: $created_by,
       priority: $priority,
-      wave: $wave,
-      spec: {
-        description: $description,
-        acceptance_criteria: $acceptance_criteria
-      },
-      handoff_from: null,
+      tags: $tags,
+      parent_task_id: null,
+      subtask_ids: [],
+      depends_on: [],
+      handoff_id: null,
+      finding_id: null,
+      quality_report_id: null,
       created_at: $created_at,
       updated_at: $updated_at
     }' > "$TASKS_DIR/${id}.json"
@@ -130,7 +131,7 @@ cmd_assign_task() {
   ts="$(now_iso)"
 
   jq --arg agent "$agent" --arg ts "$ts" \
-    '.status = "assigned" | .assigned_to = $agent | .updated_at = $ts' \
+    '.status = "assigned" | .assigned_agent = $agent | .updated_at = $ts' \
     "$task_file" > "$task_file.tmp" && mv "$task_file.tmp" "$task_file"
 
   echo "Task $id assigned to $agent"

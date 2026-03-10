@@ -1,5 +1,8 @@
+SHELL := /bin/bash
+
 .PHONY: install dev test lint typecheck fmt clean run-discover run-enrich run-export \
-	system-ci system-validate check-agents check-skills check-commands check-registry check-refs system-status clean-state
+	system-ci system-validate check-agents check-skills check-commands check-registry check-refs system-status clean-state \
+	system-init system-health dashboard
 
 install:
 	pip install -e .
@@ -136,14 +139,14 @@ system-status: ## Show system counts (agents, skills, commands, state)
 		echo "  $$dir: $$count"; \
 	done
 
-clean-state: ## Remove closed/completed state files (with confirmation)
+clean-state: ## Remove done/failed state files (with confirmation)
 	@echo "Files that would be removed:"
 	@found=0; \
 	for dir in tasks handoffs; do \
 		for f in $(STATE_DIR)/$$dir/*.json; do \
 			[ -f "$$f" ] || continue; \
 			status=$$(jq -r '.status // ""' "$$f" 2>/dev/null); \
-			if [ "$$status" = "closed" ] || [ "$$status" = "accepted" ] || [ "$$status" = "completed" ]; then \
+			if [ "$$status" = "done" ] || [ "$$status" = "failed" ]; then \
 				echo "  $$f (status: $$status)"; \
 				found=$$((found + 1)); \
 			fi; \
@@ -160,7 +163,7 @@ clean-state: ## Remove closed/completed state files (with confirmation)
 			for f in $(STATE_DIR)/$$dir/*.json; do \
 				[ -f "$$f" ] || continue; \
 				status=$$(jq -r '.status // ""' "$$f" 2>/dev/null); \
-				if [ "$$status" = "closed" ] || [ "$$status" = "accepted" ] || [ "$$status" = "completed" ]; then \
+				if [ "$$status" = "done" ] || [ "$$status" = "failed" ]; then \
 					rm "$$f"; \
 					echo "  Removed: $$f"; \
 				fi; \
@@ -169,3 +172,42 @@ clean-state: ## Remove closed/completed state files (with confirmation)
 	else \
 		echo "Cancelled."; \
 	fi
+
+system-init: ## Bootstrap all required directories and .gitkeep files
+	@echo "=== Initializing Multi-Agent System ==="
+	@for dir in \
+		.claude/agents \
+		.claude/skills/s-tier \
+		.claude/skills/a-tier \
+		.claude/commands \
+		.claude/schemas \
+		.claude/state/tasks \
+		.claude/state/handoffs \
+		.claude/state/findings \
+		.claude/state/decisions \
+		.claude/state/workflows \
+		.claude/state/proposals \
+		.claude/quality/scripts \
+		.claude/quality/reports \
+		.claude/policy/proposals \
+		.claude/policy/archive \
+		.claude/hooks \
+		rules/common \
+		scripts; do \
+		mkdir -p "$$dir"; \
+		[ -f "$$dir/.gitkeep" ] || touch "$$dir/.gitkeep"; \
+	done
+	@if [ ! -f .git/hooks/pre-commit ] && [ -f .claude/hooks/pre-commit.sh ]; then \
+		ln -sf ../../.claude/hooks/pre-commit.sh .git/hooks/pre-commit; \
+		chmod +x .git/hooks/pre-commit; \
+		echo "  Installed pre-commit hook"; \
+	fi
+	@echo "  All directories created."
+	@echo "  Run 'make system-health' to verify."
+
+system-health: ## Run comprehensive system health check
+	@bash scripts/system-health.sh
+
+dashboard: ## Start the multi-agent system dashboard (port 8077)
+	@echo "Starting dashboard at http://localhost:8077"
+	@uvicorn apps.dashboard.server:app --host 0.0.0.0 --port 8077 --reload

@@ -20,41 +20,52 @@ now_iso() {
 
 usage() {
   cat <<'USAGE'
-Usage: decide.sh --context CONTEXT --decision DECISION --rationale RATIONALE --decided-by AGENT
-                 [--alternatives "alt1,alt2"] [--status active|superseded|revoked]
-                 [--related-tasks "id1,id2"]
+Usage: decide.sh --type TYPE --reference-id ID --decision DECISION
+                 --reasoning TEXT --decided-by AGENT
+                 [--follow-up TEXT] [--alternatives "alt1,alt2"]
 
-Creates a decision log entry in .claude/state/decisions/.
+Creates a decision record conforming to decision.schema.json.
+
+  --type:         task_completion | task_rejection | policy_promotion | policy_rejection
+  --decision:     accept | reject | defer
+  --decided-by:   coordinator | policy-maintainer
 USAGE
   exit 1
 }
 
 main() {
-  local context="" decision="" rationale="" decided_by="" alternatives="" status="active" related_tasks=""
+  local type="" reference_id="" decision="" reasoning="" decided_by=""
+  local follow_up="" alternatives=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --context)       context="$2"; shift 2 ;;
+      --type)          type="$2"; shift 2 ;;
+      --reference-id)  reference_id="$2"; shift 2 ;;
       --decision)      decision="$2"; shift 2 ;;
-      --rationale)     rationale="$2"; shift 2 ;;
+      --reasoning)     reasoning="$2"; shift 2 ;;
       --decided-by)    decided_by="$2"; shift 2 ;;
+      --follow-up)     follow_up="$2"; shift 2 ;;
       --alternatives)  alternatives="$2"; shift 2 ;;
-      --status)        status="$2"; shift 2 ;;
-      --related-tasks) related_tasks="$2"; shift 2 ;;
       --help|-h)       usage ;;
       *) echo "Unknown option: $1" >&2; usage ;;
     esac
   done
 
-  if [[ -z "$context" || -z "$decision" || -z "$rationale" || -z "$decided_by" ]]; then
-    echo "Error: --context, --decision, --rationale, and --decided-by are all required." >&2
+  if [[ -z "$type" || -z "$reference_id" || -z "$decision" || -z "$reasoning" || -z "$decided_by" ]]; then
+    echo "Error: --type, --reference-id, --decision, --reasoning, and --decided-by are all required." >&2
     usage
   fi
 
-  # Validate status enum
-  case "$status" in
-    active|superseded|revoked) ;;
-    *) echo "Error: --status must be active|superseded|revoked" >&2; exit 1 ;;
+  # Validate type enum (matches decision.schema.json)
+  case "$type" in
+    task_completion|task_rejection|policy_promotion|policy_rejection) ;;
+    *) echo "Error: --type must be task_completion|task_rejection|policy_promotion|policy_rejection" >&2; exit 1 ;;
+  esac
+
+  # Validate decision enum (matches decision.schema.json)
+  case "$decision" in
+    accept|reject|defer) ;;
+    *) echo "Error: --decision must be accept|reject|defer" >&2; exit 1 ;;
   esac
 
   local id
@@ -68,38 +79,39 @@ main() {
     alternatives_json="$(echo "$alternatives" | jq -R 'split(",") | map(ltrimstr(" ") | rtrimstr(" ")) | map(select(length > 0))')"
   fi
 
-  # Convert comma-separated related task IDs to JSON array
-  local related_tasks_json="[]"
-  if [[ -n "$related_tasks" ]]; then
-    related_tasks_json="$(echo "$related_tasks" | jq -R 'split(",") | map(ltrimstr(" ") | rtrimstr(" ")) | map(select(length > 0))')"
+  # Handle nullable follow_up
+  local follow_up_json="null"
+  if [[ -n "$follow_up" ]]; then
+    follow_up_json="$(printf '%s' "$follow_up" | jq -Rs '.')"
   fi
 
   mkdir -p "$DECISIONS_DIR"
 
+  # Output conforms to .claude/schemas/decision.schema.json
   jq -n \
     --arg id "$id" \
-    --arg context "$context" \
+    --arg type "$type" \
+    --arg reference_id "$reference_id" \
     --arg decision "$decision" \
-    --argjson alternatives_considered "$alternatives_json" \
-    --arg rationale "$rationale" \
+    --arg reasoning "$reasoning" \
     --arg decided_by "$decided_by" \
-    --arg status "$status" \
-    --argjson related_tasks "$related_tasks_json" \
+    --argjson follow_up "$follow_up_json" \
+    --argjson alternatives_considered "$alternatives_json" \
     --arg created_at "$ts" \
     '{
       id: $id,
-      context: $context,
+      type: $type,
+      reference_id: $reference_id,
       decision: $decision,
-      alternatives_considered: $alternatives_considered,
-      rationale: $rationale,
+      reasoning: $reasoning,
       decided_by: $decided_by,
-      status: $status,
-      related_tasks: $related_tasks,
+      follow_up: $follow_up,
+      alternatives_considered: $alternatives_considered,
       created_at: $created_at
     }' > "$DECISIONS_DIR/${id}.json"
 
   echo "Decision logged: $id"
-  echo "  Decision: $decision"
+  echo "  Type: $type | Decision: $decision"
   echo "  File: $DECISIONS_DIR/${id}.json"
 }
 
