@@ -23,13 +23,13 @@ Systematic attack path visualization and analysis.
 ```
                     [Root Goal]
                          |
-            ┌────────────┴────────────┐
-            │                         │
+            +------------+------------+
+            |                         |
        [Sub-goal 1]              [Sub-goal 2]
        (OR node)                 (AND node)
-            │                         │
-      ┌─────┴─────┐             ┌─────┴─────┐
-      │           │             │           │
+            |                         |
+      +-----+-----+             +-----+-----+
+      |           |             |           |
    [Attack]   [Attack]      [Attack]   [Attack]
     (leaf)     (leaf)        (leaf)     (leaf)
 ```
@@ -51,21 +51,18 @@ Systematic attack path visualization and analysis.
 | **Skill**     | Expertise required      | Low, Medium, High  |
 | **Detection** | Likelihood of detection | Low, Medium, High  |
 
-## Templates
-
-### Template 1: Attack Tree Data Model
+## Template: Attack Tree Data Model
 
 ```python
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional
 import json
 
 class NodeType(Enum):
     OR = "or"
     AND = "and"
     LEAF = "leaf"
-
 
 class Difficulty(Enum):
     TRIVIAL = 1
@@ -74,7 +71,6 @@ class Difficulty(Enum):
     HIGH = 4
     EXPERT = 5
 
-
 class Cost(Enum):
     FREE = 0
     LOW = 1
@@ -82,14 +78,12 @@ class Cost(Enum):
     HIGH = 3
     VERY_HIGH = 4
 
-
 class DetectionRisk(Enum):
     NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
     CERTAIN = 4
-
 
 @dataclass
 class AttackAttributes:
@@ -99,7 +93,6 @@ class AttackAttributes:
     time_hours: float = 8.0
     requires_insider: bool = False
     requires_physical: bool = False
-
 
 @dataclass
 class AttackNode:
@@ -116,41 +109,30 @@ class AttackNode:
         self.children.append(child)
 
     def calculate_path_difficulty(self) -> float:
-        """Calculate aggregate difficulty for this path."""
         if self.node_type == NodeType.LEAF:
             return self.attributes.difficulty.value
-
         if not self.children:
             return 0
-
         child_difficulties = [c.calculate_path_difficulty() for c in self.children]
-
         if self.node_type == NodeType.OR:
             return min(child_difficulties)
         else:  # AND
             return max(child_difficulties)
 
     def calculate_path_cost(self) -> float:
-        """Calculate aggregate cost for this path."""
         if self.node_type == NodeType.LEAF:
             return self.attributes.cost.value
-
         if not self.children:
             return 0
-
         child_costs = [c.calculate_path_cost() for c in self.children]
-
         if self.node_type == NodeType.OR:
             return min(child_costs)
         else:  # AND
             return sum(child_costs)
 
     def to_dict(self) -> Dict:
-        """Convert to dictionary for serialization."""
         return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
+            "id": self.id, "name": self.name, "description": self.description,
             "type": self.node_type.value,
             "attributes": {
                 "difficulty": self.attributes.difficulty.name,
@@ -162,7 +144,6 @@ class AttackNode:
             "children": [c.to_dict() for c in self.children]
         }
 
-
 @dataclass
 class AttackTree:
     name: str
@@ -171,61 +152,42 @@ class AttackTree:
     version: str = "1.0"
 
     def find_easiest_path(self) -> List[AttackNode]:
-        """Find the path with lowest difficulty."""
         return self._find_path(self.root, minimize="difficulty")
 
     def find_cheapest_path(self) -> List[AttackNode]:
-        """Find the path with lowest cost."""
         return self._find_path(self.root, minimize="cost")
 
     def find_stealthiest_path(self) -> List[AttackNode]:
-        """Find the path with lowest detection risk."""
         return self._find_path(self.root, minimize="detection")
 
-    def _find_path(
-        self,
-        node: AttackNode,
-        minimize: str
-    ) -> List[AttackNode]:
-        """Recursive path finding."""
-        if node.node_type == NodeType.LEAF:
+    def _find_path(self, node: AttackNode, minimize: str) -> List[AttackNode]:
+        if node.node_type == NodeType.LEAF or not node.children:
             return [node]
-
-        if not node.children:
-            return [node]
-
         if node.node_type == NodeType.OR:
-            # Pick the best child path
-            best_path = None
-            best_score = float('inf')
-
+            best_path, best_score = None, float('inf')
             for child in node.children:
                 child_path = self._find_path(child, minimize)
                 score = self._path_score(child_path, minimize)
                 if score < best_score:
-                    best_score = score
-                    best_path = child_path
-
+                    best_score, best_path = score, child_path
             return [node] + (best_path or [])
         else:  # AND
-            # Must traverse all children
             path = [node]
             for child in node.children:
                 path.extend(self._find_path(child, minimize))
             return path
 
     def _path_score(self, path: List[AttackNode], metric: str) -> float:
-        """Calculate score for a path."""
+        leaves = [n for n in path if n.node_type == NodeType.LEAF]
         if metric == "difficulty":
-            return sum(n.attributes.difficulty.value for n in path if n.node_type == NodeType.LEAF)
+            return sum(n.attributes.difficulty.value for n in leaves)
         elif metric == "cost":
-            return sum(n.attributes.cost.value for n in path if n.node_type == NodeType.LEAF)
+            return sum(n.attributes.cost.value for n in leaves)
         elif metric == "detection":
-            return sum(n.attributes.detection_risk.value for n in path if n.node_type == NodeType.LEAF)
+            return sum(n.attributes.detection_risk.value for n in leaves)
         return 0
 
     def get_all_leaf_attacks(self) -> List[AttackNode]:
-        """Get all leaf attack nodes."""
         leaves = []
         self._collect_leaves(self.root, leaves)
         return leaves
@@ -237,20 +199,16 @@ class AttackTree:
             self._collect_leaves(child, leaves)
 
     def get_unmitigated_attacks(self) -> List[AttackNode]:
-        """Find attacks without mitigations."""
         return [n for n in self.get_all_leaf_attacks() if not n.mitigations]
 
     def export_json(self) -> str:
-        """Export tree to JSON."""
         return json.dumps({
-            "name": self.name,
-            "description": self.description,
-            "version": self.version,
-            "root": self.root.to_dict()
+            "name": self.name, "description": self.description,
+            "version": self.version, "root": self.root.to_dict()
         }, indent=2)
 ```
 
-### Template 2: Attack Tree Builder
+## Template: Attack Tree Builder
 
 ```python
 class AttackTreeBuilder:
@@ -263,252 +221,52 @@ class AttackTreeBuilder:
         self._root: Optional[AttackNode] = None
 
     def goal(self, id: str, name: str, description: str = "") -> 'AttackTreeBuilder':
-        """Set the root goal (OR node by default)."""
-        self._root = AttackNode(
-            id=id,
-            name=name,
-            description=description,
-            node_type=NodeType.OR
-        )
+        self._root = AttackNode(id=id, name=name, description=description, node_type=NodeType.OR)
         self._node_stack = [self._root]
         return self
 
     def or_node(self, id: str, name: str, description: str = "") -> 'AttackTreeBuilder':
-        """Add an OR sub-goal."""
-        node = AttackNode(
-            id=id,
-            name=name,
-            description=description,
-            node_type=NodeType.OR
-        )
+        node = AttackNode(id=id, name=name, description=description, node_type=NodeType.OR)
         self._current().add_child(node)
         self._node_stack.append(node)
         return self
 
     def and_node(self, id: str, name: str, description: str = "") -> 'AttackTreeBuilder':
-        """Add an AND sub-goal (all children required)."""
-        node = AttackNode(
-            id=id,
-            name=name,
-            description=description,
-            node_type=NodeType.AND
-        )
+        node = AttackNode(id=id, name=name, description=description, node_type=NodeType.AND)
         self._current().add_child(node)
         self._node_stack.append(node)
         return self
 
-    def attack(
-        self,
-        id: str,
-        name: str,
-        description: str = "",
-        difficulty: Difficulty = Difficulty.MEDIUM,
-        cost: Cost = Cost.MEDIUM,
-        detection: DetectionRisk = DetectionRisk.MEDIUM,
-        time_hours: float = 8.0,
-        mitigations: List[str] = None
-    ) -> 'AttackTreeBuilder':
-        """Add a leaf attack node."""
+    def attack(self, id: str, name: str, description: str = "",
+               difficulty: Difficulty = Difficulty.MEDIUM, cost: Cost = Cost.MEDIUM,
+               detection: DetectionRisk = DetectionRisk.MEDIUM, time_hours: float = 8.0,
+               mitigations: List[str] = None) -> 'AttackTreeBuilder':
         node = AttackNode(
-            id=id,
-            name=name,
-            description=description,
-            node_type=NodeType.LEAF,
-            attributes=AttackAttributes(
-                difficulty=difficulty,
-                cost=cost,
-                detection_risk=detection,
-                time_hours=time_hours
-            ),
+            id=id, name=name, description=description, node_type=NodeType.LEAF,
+            attributes=AttackAttributes(difficulty=difficulty, cost=cost,
+                                        detection_risk=detection, time_hours=time_hours),
             mitigations=mitigations or []
         )
         self._current().add_child(node)
         return self
 
     def end(self) -> 'AttackTreeBuilder':
-        """Close current node, return to parent."""
         if len(self._node_stack) > 1:
             self._node_stack.pop()
         return self
 
     def build(self) -> AttackTree:
-        """Build the attack tree."""
         if not self._root:
             raise ValueError("No root goal defined")
-        return AttackTree(
-            name=self.name,
-            description=self.description,
-            root=self._root
-        )
+        return AttackTree(name=self.name, description=self.description, root=self._root)
 
     def _current(self) -> AttackNode:
         if not self._node_stack:
             raise ValueError("No current node")
         return self._node_stack[-1]
-
-
-# Example usage
-def build_account_takeover_tree() -> AttackTree:
-    """Build attack tree for account takeover scenario."""
-    return (
-        AttackTreeBuilder("Account Takeover", "Gain unauthorized access to user account")
-        .goal("G1", "Take Over User Account")
-
-        .or_node("S1", "Steal Credentials")
-            .attack(
-                "A1", "Phishing Attack",
-                difficulty=Difficulty.LOW,
-                cost=Cost.LOW,
-                detection=DetectionRisk.MEDIUM,
-                mitigations=["Security awareness training", "Email filtering"]
-            )
-            .attack(
-                "A2", "Credential Stuffing",
-                difficulty=Difficulty.TRIVIAL,
-                cost=Cost.LOW,
-                detection=DetectionRisk.HIGH,
-                mitigations=["Rate limiting", "MFA", "Password breach monitoring"]
-            )
-            .attack(
-                "A3", "Keylogger Malware",
-                difficulty=Difficulty.MEDIUM,
-                cost=Cost.MEDIUM,
-                detection=DetectionRisk.MEDIUM,
-                mitigations=["Endpoint protection", "MFA"]
-            )
-        .end()
-
-        .or_node("S2", "Bypass Authentication")
-            .attack(
-                "A4", "Session Hijacking",
-                difficulty=Difficulty.MEDIUM,
-                cost=Cost.LOW,
-                detection=DetectionRisk.LOW,
-                mitigations=["Secure session management", "HTTPS only"]
-            )
-            .attack(
-                "A5", "Authentication Bypass Vulnerability",
-                difficulty=Difficulty.HIGH,
-                cost=Cost.LOW,
-                detection=DetectionRisk.LOW,
-                mitigations=["Security testing", "Code review", "WAF"]
-            )
-        .end()
-
-        .or_node("S3", "Social Engineering")
-            .and_node("S3.1", "Account Recovery Attack")
-                .attack(
-                    "A6", "Gather Personal Information",
-                    difficulty=Difficulty.LOW,
-                    cost=Cost.FREE,
-                    detection=DetectionRisk.NONE
-                )
-                .attack(
-                    "A7", "Call Support Desk",
-                    difficulty=Difficulty.MEDIUM,
-                    cost=Cost.FREE,
-                    detection=DetectionRisk.MEDIUM,
-                    mitigations=["Support verification procedures", "Security questions"]
-                )
-            .end()
-        .end()
-
-        .build()
-    )
 ```
 
-### Template 3: Mermaid Diagram Generator
-
-```python
-class MermaidExporter:
-    """Export attack trees to Mermaid diagram format."""
-
-    def __init__(self, tree: AttackTree):
-        self.tree = tree
-        self._lines: List[str] = []
-        self._node_count = 0
-
-    def export(self) -> str:
-        """Export tree to Mermaid flowchart."""
-        self._lines = ["flowchart TD"]
-        self._export_node(self.tree.root, None)
-        return "\n".join(self._lines)
-
-    def _export_node(self, node: AttackNode, parent_id: Optional[str]) -> str:
-        """Recursively export nodes."""
-        node_id = f"N{self._node_count}"
-        self._node_count += 1
-
-        # Node shape based on type
-        if node.node_type == NodeType.OR:
-            shape = f"{node_id}(({node.name}))"
-        elif node.node_type == NodeType.AND:
-            shape = f"{node_id}[{node.name}]"
-        else:  # LEAF
-            # Color based on difficulty
-            style = self._get_leaf_style(node)
-            shape = f"{node_id}[/{node.name}/]"
-            self._lines.append(f"    style {node_id} {style}")
-
-        self._lines.append(f"    {shape}")
-
-        if parent_id:
-            connector = "-->" if node.node_type != NodeType.AND else "==>"
-            self._lines.append(f"    {parent_id} {connector} {node_id}")
-
-        for child in node.children:
-            self._export_node(child, node_id)
-
-        return node_id
-
-    def _get_leaf_style(self, node: AttackNode) -> str:
-        """Get style based on attack attributes."""
-        colors = {
-            Difficulty.TRIVIAL: "fill:#ff6b6b",  # Red - easy attack
-            Difficulty.LOW: "fill:#ffa06b",
-            Difficulty.MEDIUM: "fill:#ffd93d",
-            Difficulty.HIGH: "fill:#6bcb77",
-            Difficulty.EXPERT: "fill:#4d96ff",  # Blue - hard attack
-        }
-        color = colors.get(node.attributes.difficulty, "fill:#gray")
-        return color
-
-
-class PlantUMLExporter:
-    """Export attack trees to PlantUML format."""
-
-    def __init__(self, tree: AttackTree):
-        self.tree = tree
-
-    def export(self) -> str:
-        """Export tree to PlantUML."""
-        lines = [
-            "@startmindmap",
-            f"* {self.tree.name}",
-        ]
-        self._export_node(self.tree.root, lines, 1)
-        lines.append("@endmindmap")
-        return "\n".join(lines)
-
-    def _export_node(self, node: AttackNode, lines: List[str], depth: int) -> None:
-        """Recursively export nodes."""
-        prefix = "*" * (depth + 1)
-
-        if node.node_type == NodeType.OR:
-            marker = "[OR]"
-        elif node.node_type == NodeType.AND:
-            marker = "[AND]"
-        else:
-            diff = node.attributes.difficulty.name
-            marker = f"<<{diff}>>"
-
-        lines.append(f"{prefix} {marker} {node.name}")
-
-        for child in node.children:
-            self._export_node(child, lines, depth + 1)
-```
-
-### Template 4: Attack Path Analysis
+## Template: Attack Path Analysis
 
 ```python
 from typing import Set, Tuple
@@ -520,146 +278,79 @@ class AttackPathAnalyzer:
         self.tree = tree
 
     def get_all_paths(self) -> List[List[AttackNode]]:
-        """Get all possible attack paths."""
         paths = []
         self._collect_paths(self.tree.root, [], paths)
         return paths
 
-    def _collect_paths(
-        self,
-        node: AttackNode,
-        current_path: List[AttackNode],
-        all_paths: List[List[AttackNode]]
-    ) -> None:
-        """Recursively collect all paths."""
+    def _collect_paths(self, node: AttackNode, current_path: List[AttackNode],
+                       all_paths: List[List[AttackNode]]) -> None:
         current_path = current_path + [node]
-
-        if node.node_type == NodeType.LEAF:
+        if node.node_type == NodeType.LEAF or not node.children:
             all_paths.append(current_path)
             return
-
-        if not node.children:
-            all_paths.append(current_path)
-            return
-
         if node.node_type == NodeType.OR:
-            # Each child is a separate path
             for child in node.children:
                 self._collect_paths(child, current_path, all_paths)
-        else:  # AND
-            # Must combine all children
+        else:  # AND - combine all children
             child_paths = []
             for child in node.children:
                 child_sub_paths = []
                 self._collect_paths(child, [], child_sub_paths)
                 child_paths.append(child_sub_paths)
-
-            # Combine paths from all AND children
-            combined = self._combine_and_paths(child_paths)
-            for combo in combined:
+            for combo in self._combine_and_paths(child_paths):
                 all_paths.append(current_path + combo)
 
-    def _combine_and_paths(
-        self,
-        child_paths: List[List[List[AttackNode]]]
-    ) -> List[List[AttackNode]]:
-        """Combine paths from AND node children."""
+    def _combine_and_paths(self, child_paths):
         if not child_paths:
             return [[]]
-
-        if len(child_paths) == 1:
-            return [path for paths in child_paths for path in paths]
-
-        # Cartesian product of all child path combinations
         result = [[]]
         for paths in child_paths:
-            new_result = []
-            for existing in result:
-                for path in paths:
-                    new_result.append(existing + path)
-            result = new_result
+            result = [existing + path for existing in result for path in paths]
         return result
 
     def calculate_path_metrics(self, path: List[AttackNode]) -> Dict:
-        """Calculate metrics for a specific path."""
         leaves = [n for n in path if n.node_type == NodeType.LEAF]
-
-        total_difficulty = sum(n.attributes.difficulty.value for n in leaves)
-        total_cost = sum(n.attributes.cost.value for n in leaves)
-        total_time = sum(n.attributes.time_hours for n in leaves)
-        max_detection = max((n.attributes.detection_risk.value for n in leaves), default=0)
-
         return {
             "steps": len(leaves),
-            "total_difficulty": total_difficulty,
-            "avg_difficulty": total_difficulty / len(leaves) if leaves else 0,
-            "total_cost": total_cost,
-            "total_time_hours": total_time,
-            "max_detection_risk": max_detection,
+            "total_difficulty": sum(n.attributes.difficulty.value for n in leaves),
+            "total_cost": sum(n.attributes.cost.value for n in leaves),
+            "total_time_hours": sum(n.attributes.time_hours for n in leaves),
+            "max_detection_risk": max((n.attributes.detection_risk.value for n in leaves), default=0),
             "requires_insider": any(n.attributes.requires_insider for n in leaves),
             "requires_physical": any(n.attributes.requires_physical for n in leaves),
         }
 
     def identify_critical_nodes(self) -> List[Tuple[AttackNode, int]]:
-        """Find nodes that appear in the most paths."""
         paths = self.get_all_paths()
         node_counts: Dict[str, Tuple[AttackNode, int]] = {}
-
         for path in paths:
             for node in path:
                 if node.id not in node_counts:
                     node_counts[node.id] = (node, 0)
                 node_counts[node.id] = (node, node_counts[node.id][1] + 1)
-
-        return sorted(
-            node_counts.values(),
-            key=lambda x: x[1],
-            reverse=True
-        )
+        return sorted(node_counts.values(), key=lambda x: x[1], reverse=True)
 
     def coverage_analysis(self, mitigated_attacks: Set[str]) -> Dict:
-        """Analyze how mitigations affect attack coverage."""
         all_paths = self.get_all_paths()
-        blocked_paths = []
-        open_paths = []
-
-        for path in all_paths:
-            path_attacks = {n.id for n in path if n.node_type == NodeType.LEAF}
-            if path_attacks & mitigated_attacks:
-                blocked_paths.append(path)
-            else:
-                open_paths.append(path)
-
+        blocked = [p for p in all_paths if {n.id for n in p if n.node_type == NodeType.LEAF} & mitigated_attacks]
+        open_paths = [p for p in all_paths if p not in blocked]
         return {
             "total_paths": len(all_paths),
-            "blocked_paths": len(blocked_paths),
+            "blocked_paths": len(blocked),
             "open_paths": len(open_paths),
-            "coverage_percentage": len(blocked_paths) / len(all_paths) * 100 if all_paths else 0,
-            "open_path_details": [
-                {"path": [n.name for n in p], "metrics": self.calculate_path_metrics(p)}
-                for p in open_paths[:5]  # Top 5 open paths
-            ]
+            "coverage_percentage": len(blocked) / len(all_paths) * 100 if all_paths else 0,
         }
 
     def prioritize_mitigations(self) -> List[Dict]:
-        """Prioritize mitigations by impact."""
         critical_nodes = self.identify_critical_nodes()
-        paths = self.get_all_paths()
-        total_paths = len(paths)
-
-        recommendations = []
-        for node, count in critical_nodes:
-            if node.node_type == NodeType.LEAF and node.mitigations:
-                recommendations.append({
-                    "attack": node.name,
-                    "attack_id": node.id,
-                    "paths_blocked": count,
-                    "coverage_impact": count / total_paths * 100,
-                    "difficulty": node.attributes.difficulty.name,
-                    "mitigations": node.mitigations,
-                })
-
-        return sorted(recommendations, key=lambda x: x["coverage_impact"], reverse=True)
+        total_paths = len(self.get_all_paths())
+        return sorted([
+            {"attack": n.name, "attack_id": n.id, "paths_blocked": count,
+             "coverage_impact": count / total_paths * 100,
+             "difficulty": n.attributes.difficulty.name, "mitigations": n.mitigations}
+            for n, count in critical_nodes
+            if n.node_type == NodeType.LEAF and n.mitigations
+        ], key=lambda x: x["coverage_impact"], reverse=True)
 ```
 
 ## Best Practices

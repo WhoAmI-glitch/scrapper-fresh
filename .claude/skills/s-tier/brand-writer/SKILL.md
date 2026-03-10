@@ -1,6 +1,6 @@
 ---
 name: brand-writer
-description: Write clear, developer-first copy for Zed — leading with facts, grounded in craft.
+description: Use when writing clear, developer-first copy for Zed — leading with facts, grounded in craft.
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion, WebFetch
 user-invocable: true
 ---
