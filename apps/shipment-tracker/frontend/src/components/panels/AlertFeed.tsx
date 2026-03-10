@@ -50,6 +50,7 @@ const TYPE_ICONS: Record<AlertType, React.ReactNode> = {
   route_deviation: <Route size={12} />,
   email_received: <Mail size={12} />,
   milestone: <Flag size={12} />,
+  action_item_due: <Bell size={12} />,
 };
 
 // ── Time formatting ───────────────────────────────────────────────────────────

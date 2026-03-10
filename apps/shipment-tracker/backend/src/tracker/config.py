@@ -63,6 +63,22 @@ class Settings(BaseSettings):
     route_deviation_threshold_nm: float = 50.0
     old_alert_cleanup_days: int = 30
 
+    # --- AI / Anthropic ---
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-sonnet-4-5-20250514"
+
+    # --- Deepgram (Transcription) ---
+    deepgram_api_key: str = ""
+
+    # --- Google Calendar Sync ---
+    calendar_sync_interval_seconds: int = 300  # 5 minutes
+
+    # --- Auth / JWT ---
+    jwt_secret: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 30
+    jwt_refresh_token_expire_days: int = 7
+
     # --- CORS ---
     cors_origins: list[str] = ["*"]
 

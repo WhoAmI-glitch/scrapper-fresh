@@ -7,6 +7,7 @@ obtaining connections and executing schema migrations.
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator
 
 import psycopg
@@ -99,6 +100,42 @@ async def execute_schema(conn: psycopg.AsyncConnection) -> None:
     await conn.execute(schema_sql)  # type: ignore[arg-type]
     await conn.commit()
     logger.info("Schema applied successfully")
+
+
+async def run_migrations(conn: psycopg.AsyncConnection) -> None:
+    """Run pending SQL migrations from the migrations directory.
+
+    Tracks applied migrations in a _migrations table. Each migration
+    runs exactly once, in alphabetical order.
+    """
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS _migrations (
+            name TEXT PRIMARY KEY,
+            applied_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    """)
+    await conn.commit()
+
+    migrations_dir = Path(__file__).parent / "models" / "migrations"
+    if not migrations_dir.exists():
+        return
+
+    sql_files = sorted(migrations_dir.glob("*.sql"))
+    for sql_file in sql_files:
+        cursor = await conn.execute(
+            "SELECT 1 FROM _migrations WHERE name = %s", [sql_file.name]
+        )
+        if await cursor.fetchone():
+            continue
+
+        logger.info("Applying migration: {}", sql_file.name)
+        migration_sql = sql_file.read_text(encoding="utf-8")
+        await conn.execute(migration_sql)  # type: ignore[arg-type]
+        await conn.execute(
+            "INSERT INTO _migrations (name) VALUES (%s)", [sql_file.name]
+        )
+        await conn.commit()
+        logger.info("Migration {} applied successfully", sql_file.name)
 
 
 async def execute_seed(conn: psycopg.AsyncConnection) -> None:
