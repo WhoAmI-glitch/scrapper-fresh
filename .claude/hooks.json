@@ -1,0 +1,18 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "tools": ["Write", "Edit"],
+      "command": "bash -c 'file=\"$CLAUDE_FILE_PATH\"; if [[ -n \"$file\" ]] && [[ \"$file\" =~ \\.(ts|tsx|js|jsx|py)$ ]] && [[ ! \"$file\" =~ (test|spec|__test__|_test) ]]; then echo \"Reminder: This source file should have corresponding tests. Check if tests exist and update them if behavior changed.\"; fi; exit 0'"
+    },
+    {
+      "event": "PostToolUse",
+      "tools": ["Bash"],
+      "command": "bash -c 'input=\"$CLAUDE_TOOL_INPUT\"; if echo \"$input\" | grep -q \"git commit\"; then echo \"Verify: commit message follows format: <type>(scope): <description> (feat/fix/chore/docs/test/refactor)\"; fi; exit 0'"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "command": "bash -c 'prompt=\"$CLAUDE_USER_PROMPT\"; cmd=$(echo \"$prompt\" | grep -oE \"^/[a-z-]+\" | head -1); if [[ -n \"$cmd\" ]]; then cmd_name=${cmd#/}; repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); cmd_dir=\"${repo_root}/.claude/commands\"; if [[ -f \"${cmd_dir}/${cmd_name}.md\" ]]; then echo \"Command /${cmd_name} found.\"; else echo \"Warning: /${cmd_name} is not a registered command. Available: $(ls ${cmd_dir}/*.md 2>/dev/null | xargs -I{} basename {} .md | tr \\\"\\n\\\" \\\", \\\")\"; fi; fi; exit 0'"
+    }
+  ]
+}

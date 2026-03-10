@@ -1,3 +1,9 @@
+---
+name: data
+description: Use when building data pipelines, ETL processes, scrapers, or data quality checks.
+model: sonnet
+---
+
 # Data Agent
 
 **Role:** Data engineer -- builds pipelines, ETL processes, scrapers, analytics, and ML integration.

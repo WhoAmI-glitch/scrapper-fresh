@@ -6,11 +6,11 @@ This workspace operates as a **multi-agent productivity operating system**.
 
 | Component | Role |
 |---|---|
-| **Coordinator** | Decomposes tasks, routes to specialists, enforces quality, accepts/rejects deliverables |
+| **Orchestrator** | Decomposes tasks, routes to specialists, enforces quality, accepts/rejects deliverables |
 | **Specialist agents** | Execute discrete units of work through structured state transitions |
 | **Communication** | All inter-agent data flows through JSON artifacts -- never prose handoffs |
 
-The coordinator is the only agent that reads this file as policy. Specialists receive scoped instructions via handoff artifacts.
+The orchestrator is the only agent that reads this file as policy. Specialists receive scoped instructions via handoff artifacts.
 
 ---
 
@@ -25,6 +25,8 @@ Do NOT duplicate definitions here. The single source of truth for each concern:
 | Runtime state (tasks, locks, queues) | `.claude/state/` |
 | Quality gates and validation scripts | `.claude/quality/` |
 | Evolution rules and proposals | `.claude/policy/` |
+| Code standards and conventions | `rules/` |
+| Orchestration scripts | `scripts/` |
 
 If a directory does not yet exist, the first agent that needs it creates it with the correct schema scaffolding.
 
@@ -72,6 +74,8 @@ pending --> assigned --> in_progress --> review --> done
 | `failed` | `assigned` | Coordinator reassigns with updated handoff containing failure context |
 
 No transition may skip a state. No state may be entered without its precondition.
+
+**Retry policy:** Maximum 3 retries per task. After 3 rejections, the task escalates to `needs-human-review`.
 
 ---
 
@@ -123,22 +127,16 @@ Rules in this file evolve through a controlled promotion lifecycle, never throug
 
 ## 8. Code Standards
 
-### TypeScript
-- `strict: true`, no `any` without branded utility + comment
-- Structured logger only -- no `console.log` in production
-- Runtime validation with `zod`
+Detailed coding standards live in `rules/` to avoid duplication:
 
-### Python
-- Type hints on all signatures, `pydantic` for data models
-- `ruff format` + `ruff check`, async-first for I/O-bound code
-
-### SQL
-- Parameterized queries only -- never string concatenation
-- All migrations must be reversible
-
-### Shell
-- `set -euo pipefail` at top of every script
-- All variables quoted, `shellcheck` compliant
+| File | Scope |
+|---|---|
+| `rules/common/coding-style.md` | Naming, formatting, comments, error handling, function design |
+| `rules/common/git-workflow.md` | Branch naming, commit messages, PR conventions, merge strategy |
+| `rules/common/security.md` | Secrets, input validation, auth, dependencies, data handling |
+| `rules/common/testing.md` | Coverage targets, test naming, structure, isolation, performance |
+| `rules/python/patterns.md` | Python 3.11+ tooling, type hints, async, error handling, project layout |
+| `rules/typescript/patterns.md` | TypeScript strict mode, utility types, null handling, async patterns |
 
 ---
 
@@ -178,3 +176,109 @@ russprofile.ru, scrapes structured business data (INN, OGRN, contacts, revenue),
 stores enriched leads in PostgreSQL. A FastAPI dashboard provides one-click operation
 and Excel export. See `ARCHITECTURE.md`, `QUICKSTART.md`, and `DEPLOYMENT_GUIDE.md`
 for full project details. This section is the only project-specific content in this file.
+
+---
+
+## 12. Agent Roster (26 agents)
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `orchestrator` | opus | Sole coordinator: decomposes briefs, manages waves, enforces quality gates |
+| `architect` | opus | Pure design decisions and ADRs (WHAT/WHY, never HOW) |
+| `dev-lead` | opus | Translates architecture into code structure, reviews PRs (HOW) |
+| `frontend-builder` | sonnet | UI components, pages, client-side logic |
+| `backend-builder` | sonnet | APIs, server logic, data layer |
+| `scaffolder` | sonnet | Project structure, boilerplate, config |
+| `qa-reviewer` | opus | Quality review, test generation, audits. **VETO AUTHORITY** |
+| `devils-advocate` | opus | Adversarial review, risk assessment. **VETO on Critical** |
+| `researcher` | sonnet | Web research, structured synthesis |
+| `deep-worker` | opus | Complex multi-step reasoning, cross-domain synthesis |
+| `quick-task` | haiku | Simple lookups, formatting, calculations |
+| `deployer` | sonnet | Vercel/Railway deployment, domains, SSL |
+| `devops-engineer` | sonnet | IaC, CI/CD, cloud, containers, MCP servers, automation |
+| `comms-drafter` | sonnet | Communications, correspondence, external content |
+| `analyst` | opus | Quantitative analysis, financial modelling, statistics |
+| `notion-worker` | haiku | Notion pages, databases, content sync |
+| `personal-ops` | sonnet | Life admin, scheduling, reminders |
+| `art-director` | opus | Visual design direction, brand guidelines, creative QA |
+| `policy-maintainer` | opus | CLAUDE.md evolution, proposal review, policy promotion |
+| `python-pro` | opus | Python specialist: async, packaging, performance |
+| `typescript-pro` | opus | TypeScript specialist: advanced types, Node.js, frameworks |
+| `security-auditor` | opus | SAST, threat modeling, vulnerability assessment, compliance |
+| `database-architect` | opus | Schema design, indexing, migrations, query optimization |
+| `ai-engineer` | sonnet | LLM applications, RAG, prompt engineering, embeddings |
+| `data` | sonnet | Data pipelines, ETL, scrapers, data quality |
+| `reporter` | sonnet | Structured reports, stakeholder summaries, documentation |
+
+---
+
+## 13. Anti-Duplication Rules
+
+| Concept | Single Source of Truth | Violation |
+|---------|----------------------|-----------|
+| Task state | `.claude/state/tasks/<id>.json` | Any task info stored elsewhere |
+| Agent definitions | `.claude/agents/<name>.md` + `REGISTRY.json` | Agent behavior defined inline or ad-hoc |
+| Schemas | `.claude/schemas/<name>.schema.json` | Validation logic outside `.claude/schemas/` |
+| Prompts/Instructions | `.claude/agents/<name>.md` | Prompt text embedded in scripts or tasks |
+| Decisions | `.claude/state/decisions/` | Rationale stored only in commit messages |
+| Domain knowledge | Either agent OR skill, never both | Same expertise in agent .md and SKILL.md |
+| Code standards | `rules/` directory | Standards duplicated inline in this file |
+
+If you find duplication, the fix is deletion of the copy, not synchronization.
+
+---
+
+## 14. Directory Convention
+
+```
+.claude/agents/        # Agent instruction files (*.md) -- 26 agents
+.claude/skills/s-tier/ # Core domain skills (*/SKILL.md)
+.claude/skills/a-tier/ # Extended skills (*/SKILL.md) -- 82 total
+.claude/commands/      # Command definitions (*.md) -- 18 commands
+.claude/schemas/       # JSON schemas for all artifact types
+.claude/state/tasks/   # Task queue (JSON)
+.claude/state/handoffs/# Handoff artifacts (JSON)
+.claude/state/decisions/# Decision log (JSON, append-only)
+.claude/state/findings/# Findings and observations (JSON)
+.claude/state/workflows/# Command execution state (JSON)
+.claude/quality/       # Quality gates, reports, validation scripts
+.claude/hooks/         # Git-style hooks (pre-commit, post-task)
+.claude/policy/        # Policy evolution proposals and changelog
+rules/common/          # Shared coding rules (style, testing, security, git)
+rules/<language>/      # Language-specific rules (python, typescript)
+scripts/               # Orchestration and utility scripts
+```
+
+---
+
+## 15. Installed Skills (82)
+
+Skills activate automatically based on context. See `.claude/skills/REGISTRY.md` for the full list.
+
+**S-tier** (15): Core domain skills for the leadgen scraper pipeline.
+**A-tier** (67): Extended skills including document generation (docx, pdf, pptx, xlsx), orchestration (agent-orchestration, conductor-workflow, dispatching-parallel-agents), testing (test-driven-development, webapp-testing, systematic-debugging), planning (writing-plans, executing-plans, planning-methodology), and communication (gws-gmail, telegram).
+
+---
+
+## 16. Custom Commands (18)
+
+| Command | Purpose |
+|---------|---------|
+| `/dispatch` | Route a task to the appropriate specialist agent |
+| `/review` | Trigger quality review on a completed task |
+| `/promote` | Promote an approved policy proposal |
+| `/ship` | Package and deliver a completed feature |
+| `/status` | Show current system and task status |
+| `/analyze-project` | Full project analysis: structure, dependencies, quality |
+| `/conductor-setup` | Interactive project setup: vision, tech stack, workflow |
+| `/create-document` | Generate office documents (PDF, DOCX, XLSX, PPTX) |
+| `/debug-investigation` | Structured debugging: Reproduce, Hypothesize, Test, Fix, Verify |
+| `/deep-research` | Multi-agent deep research with triangulation |
+| `/evaluate-resource` | Trust and security evaluation of a repository |
+| `/feature-development` | Multi-phase orchestration: Discovery, Design, DB, Implement, Test, Review |
+| `/improve-codebase` | Identify and fix code quality issues |
+| `/research-topic` | Deep research with structured output |
+| `/run-quality-gate` | Execute all validation checks |
+| `/scaffold-project` | Full project scaffolding: structure, tooling, tests |
+| `/security-audit` | Structured security audit: Scan, Analyze, Report, Remediate |
+| `/team-review` | Parallel multi-agent code review with unified report |

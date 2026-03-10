@@ -15,12 +15,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from tracker.config import get_settings
-from tracker.db import init_pool, close_pool
+from tracker.db import init_pool, close_pool, get_conn, run_migrations
 from tracker.api.router import api_router
 from tracker.api.ws import ws_router
 from tracker.workers.ais_poller import start_ais_poller, stop_ais_poller
 from tracker.workers.email_poller import start_email_poller, stop_email_poller
 from tracker.workers.alert_checker import start_alert_checker, stop_alert_checker
+from tracker.workers.calendar_sync import start_calendar_sync, stop_calendar_sync
+from tracker.workers.report_scheduler import start_report_scheduler, stop_report_scheduler
 
 
 @asynccontextmanager
@@ -37,11 +39,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Database
     await init_pool()
 
+    # Run pending migrations
+    async with get_conn() as conn:
+        await run_migrations(conn)
+
     # Background workers
     worker_tasks: list[asyncio.Task] = []
     worker_tasks.append(await start_ais_poller())
     worker_tasks.append(await start_email_poller())
     worker_tasks.append(await start_alert_checker())
+    worker_tasks.append(await start_calendar_sync())
+    worker_tasks.append(await start_report_scheduler())
 
     logger.info("All background workers started")
 
@@ -52,6 +60,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await stop_ais_poller()
     await stop_email_poller()
     await stop_alert_checker()
+    await stop_calendar_sync()
+    await stop_report_scheduler()
 
     # Cancel any remaining worker tasks
     for task in worker_tasks:

@@ -49,6 +49,20 @@
       "type": "string",
       "description": "What could go wrong if this change is made"
     },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reviewer", "verdict", "comment"],
+        "properties": {
+          "reviewer": {"type": "string", "description": "Name of the reviewing agent"},
+          "verdict": {"type": "string", "description": "The reviewer's judgment (e.g. approve, request_changes, reject)"},
+          "comment": {"type": "string", "description": "Reviewer's commentary"}
+        },
+        "additionalProperties": false
+      },
+      "description": "Reviews collected on this proposal"
+    },
     "created_at": {
       "type": "string",
       "format": "date-time"

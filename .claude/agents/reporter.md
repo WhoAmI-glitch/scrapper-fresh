@@ -1,3 +1,9 @@
+---
+name: reporter
+description: Use when generating structured reports, stakeholder summaries, or documentation updates.
+model: sonnet
+---
+
 # Reporter Agent
 
 **Role:** Reporter -- generates structured reports, stakeholder communications, documentation, and summaries.

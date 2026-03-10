@@ -46,7 +46,7 @@ export default function HomePage() {
   } = useAlerts();
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-slate-950">
+    <div className="relative h-full w-full overflow-hidden bg-zinc-950">
       {/* ── Globe (full viewport background) ────────────────────────────────── */}
       <ShipmentGlobe
         shipments={shipments}
